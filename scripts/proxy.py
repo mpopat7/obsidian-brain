@@ -72,16 +72,14 @@ class OllamaProxy(http.server.BaseHTTPRequestHandler):
             if should_log and body:
                 try:
                     _save(self.path, json.loads(body), json.loads(resp_body))
-                except Exception as e:
-                    with open("/tmp/ollama-proxy.log", "a") as f:
-                        f.write(f"SAVE ERROR: {e}\n")
+                except Exception:
+                    pass
 
         except Exception as e:
             self.send_error(502, str(e))
 
-    def log_message(self, format, *args):
-        with open("/tmp/ollama-proxy.log", "a") as f:
-            f.write(f"{self.command} {self.path}\n")
+    def log_message(self, *args):
+        pass
 
 
 def _save(path, req, resp):
@@ -115,8 +113,6 @@ project: ""
 
 {"".join(lines)}
 """)
-    with open("/tmp/ollama-proxy.log", "a") as f:
-        f.write(f"Saved: {fname.name}\n")
     subprocess.Popen(
         ["rsync", "-az", str(VAULT_INBOX) + "/", MAC_SYNC],
         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
