@@ -76,8 +76,8 @@ class OllamaProxy(http.server.BaseHTTPRequestHandler):
         except Exception as e:
             self.send_error(502, str(e))
 
-    def log_message(self, *args):
-        pass
+    def log_message(self, format, *args):
+        print(f"{self.command} {self.path}")
 
 
 def _save(path, req, resp):
