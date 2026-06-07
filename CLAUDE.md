@@ -1,11 +1,11 @@
 # Obsidian AI Brain
 
 ## What This Is
-Ingestion scripts that capture AI conversations from multiple sources into ~/obsidian-brain/ (a local Obsidian vault synced via Git).
+Ingestion scripts that capture AI conversations from multiple sources into ~/obsidian-brain/ (a local Obsidian vault synced across devices via Obsidian Sync).
 
-## Two Repos
-- This project (developer/obsidian-brain/) → scripts and tooling
-- ~/obsidian-brain/ → the actual vault (separate private GitHub repo)
+## One Repo
+- This project (developer/obsidian-brain/) → scripts and tooling only
+- ~/obsidian-brain/ → the vault, synced automatically by Obsidian Sync (no git)
 
 ## Sources
 - Claude API → log_claude.py (fully automatic)
