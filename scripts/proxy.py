@@ -16,6 +16,7 @@ Environment variables:
 import http.server
 import json
 import os
+import subprocess
 import urllib.request
 from datetime import datetime
 from pathlib import Path
@@ -23,6 +24,7 @@ from pathlib import Path
 PROXY_PORT = int(os.environ.get("OLLAMA_PROXY_PORT", "11435"))
 OLLAMA_BACKEND = os.environ.get("OLLAMA_BACKEND", "http://localhost:11434")
 VAULT_INBOX = Path.home() / "obsidian-brain" / "00-inbox"
+MAC_SYNC = os.environ.get("MAC_SYNC", "milen@100.113.183.4:/Users/milen/obsidian-brain/00-inbox/")
 
 LOGGED_PATHS = {"/api/chat", "/api/generate"}
 
@@ -113,7 +115,12 @@ project: ""
 
 {"".join(lines)}
 """)
-    print(f"Logged: {fname.name}")
+    with open("/tmp/ollama-proxy.log", "a") as f:
+        f.write(f"Saved: {fname.name}\n")
+    subprocess.Popen(
+        ["rsync", "-az", str(VAULT_INBOX) + "/", MAC_SYNC],
+        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
+    )
 
 
 if __name__ == "__main__":
