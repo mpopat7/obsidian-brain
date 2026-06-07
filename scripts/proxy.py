@@ -59,8 +59,9 @@ class OllamaProxy(http.server.BaseHTTPRequestHandler):
             with urllib.request.urlopen(req) as resp:
                 resp_body = resp.read()
                 self.send_response(resp.status)
+                skip = {"transfer-encoding", "content-encoding", "content-length"}
                 for key, val in resp.getheaders():
-                    if key.lower() != "transfer-encoding":
+                    if key.lower() not in skip:
                         self.send_header(key, val)
                 self.send_header("Content-Length", str(len(resp_body)))
                 self.end_headers()
