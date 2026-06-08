@@ -14,8 +14,10 @@ Ingestion scripts that capture AI conversations from multiple sources into ~/obs
 - Claude API → planned, not yet built (was to be log_claude.py)
 
 ## Vault Inbox
-All scripts write to ~/obsidian-brain/00-inbox/
-Triage: move notes to 01-conversations/ and add tags/summary
+Ingestion scripts write to ~/obsidian-brain/00-inbox/
+Triage is automated by analyze_inbox.py: asks local Ollama for title/summary/tags,
+writes them to frontmatter, moves the note to 01-conversations/<source>/.
+Run it when Obsidian Sync is idle (moving files mid-sync can create duplicates).
 
 ## Scripts
 All scripts live in developer/obsidian-brain/scripts/
