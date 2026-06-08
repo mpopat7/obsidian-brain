@@ -8,10 +8,10 @@ Ingestion scripts that capture AI conversations from multiple sources into ~/obs
 - ~/obsidian-brain/ → the vault, synced automatically by Obsidian Sync (no git)
 
 ## Sources
-- Claude API → log_claude.py (fully automatic)
-- Ollama on NUC gx10-909f → log_ollama.py (fully automatic)
+- Ollama on NUC gx10-909f → proxy.py (logging proxy on :11435, fully automatic) or log_ollama.py (Python client helper, on call)
 - ChatGPT → convert_chatgpt.py (periodic manual export)
 - Claude.ai → QuickAdd hotkey in Obsidian (manual paste)
+- Claude API → planned, not yet built (was to be log_claude.py)
 
 ## Vault Inbox
 All scripts write to ~/obsidian-brain/00-inbox/
@@ -22,9 +22,9 @@ All scripts live in developer/obsidian-brain/scripts/
 
 ## Commands
 ```bash
-python scripts/log_claude.py       # log a Claude API conversation
-python scripts/log_ollama.py       # log an Ollama conversation
-python scripts/convert_chatgpt.py conversations.json  # convert ChatGPT export
+python scripts/proxy.py                                # run Ollama logging proxy on NUC (:11435 → :11434)
+python scripts/log_ollama.py                           # Ollama client helper (ask/chat), logs each call
+python scripts/convert_chatgpt.py conversations.json   # convert ChatGPT export
 ```
 
 ## Note Frontmatter
