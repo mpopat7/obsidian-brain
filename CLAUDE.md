@@ -27,7 +27,9 @@ which leaves the graph a hub-and-spoke star. relate_notes.py adds the missing pe
 model (mxbai-embed-large on the NUC), finds each note's top-K nearest neighbors by
 cosine similarity, and writes a `## Related` section. It is idempotent (regenerates the
 `## Related` block each run) and caches embeddings at ~/.cache/obsidian-brain-embeddings.json.
-Dry-run by default; pass --apply to write. Run after analyze_inbox.py to link new imports.
+Dry-run by default; pass --apply to write. analyze_inbox.py calls it automatically
+after filing new notes, so fresh imports self-link (it no-ops gracefully if the
+embedding host is unreachable). Run it standalone to re-link or re-tune.
 
 ## Scripts
 All scripts live in developer/obsidian-brain/scripts/

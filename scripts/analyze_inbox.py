@@ -139,3 +139,11 @@ if __name__ == "__main__":
     for name, outcome in results.items():
         print(f"{outcome:28} {name}")
     print(f"\n{sum(1 for o in results.values() if o.startswith('ANALYZED'))}/{len(results)} filed.")
+    if any(o.startswith("ANALYZED") for o in results.values()):
+        print("\nLinking notes (relate_notes)...")
+        try:
+            from relate_notes import relate, CONVERSATIONS as CONV
+            relate(CONV, k=5, floor=0.62, apply=True)
+        except Exception as e:
+            print(f"  relate_notes skipped ({e}) — run scripts/relate_notes.py "
+                  "--apply manually when the embedding host is reachable.")
