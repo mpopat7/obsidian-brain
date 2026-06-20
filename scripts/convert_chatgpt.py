@@ -64,7 +64,7 @@ def convert(export_path):
         ts = convo.get("create_time") or 0
         date = datetime.fromtimestamp(ts, tz=timezone.utc).strftime("%Y-%m-%d")
         title = convo.get("title", "untitled")
-        fname = _unique_path(VAULT_CHATGPT, f"{date}-{_slug(title)}")
+        fname = _unique_path(VAULT_CHATGPT, f"{date}-chatgpt-{_slug(title)}")
 
         lines = []
         for role, text in messages:
