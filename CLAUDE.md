@@ -11,6 +11,7 @@ Ingestion scripts that capture AI conversations from multiple sources into ~/obs
 - Ollama on NUC gx10-909f → proxy.py (logging proxy on :11435, fully automatic) or log_ollama.py (Python client helper, on call)
 - ChatGPT → convert_chatgpt.py (periodic manual export)
 - Claude.ai → QuickAdd hotkey in Obsidian (manual paste)
+- Perplexity → QuickAdd hotkey in Obsidian (manual paste)
 - Claude API → planned, not yet built (was to be log_claude.py)
 
 ## Vault Inbox
@@ -34,7 +35,7 @@ Every ingested note uses:
 ```yaml
 ---
 date: YYYY-MM-DD
-source: claude-api        # claude-api | claude-ai | chatgpt | ollama
+source: claude-api        # claude-api | claude-ai | chatgpt | perplexity | ollama
 model: claude-sonnet-4-6
 tags: []
 summary: ""

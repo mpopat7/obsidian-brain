@@ -21,6 +21,7 @@ SOURCE_DEST = {
     "claude-api": "claude",
     "ollama": "local",
     "chatgpt": "chatgpt",
+    "perplexity": "perplexity",
 }
 
 PROMPT = """You are organizing an AI conversation note. Read the conversation and respond with ONLY a JSON object, no other text:
@@ -29,6 +30,25 @@ Tags: 3 to 6 lowercase topic tags, hyphens instead of spaces.
 
 Conversation:
 {body}"""
+
+
+_STOP = {"a", "an", "the", "of", "on", "in", "to", "for", "and", "or", "with",
+         "is", "are", "how", "what", "why", "my", "vs", "at", "by", "from"}
+
+
+def _summary_slug(title, max_words=4):
+    words = [w for w in re.findall(r"[a-z0-9]+", title.lower())]
+    kept = [w for w in words if w not in _STOP] or words
+    return "-".join(kept[:max_words])
+
+
+def _unique(folder, name):
+    dest = folder / name
+    n = 2
+    while dest.exists():
+        dest = folder / f"{dest.stem}-{n}{dest.suffix}"
+        n += 1
+    return dest
 
 
 def parse_note(path):
@@ -102,10 +122,12 @@ def analyze_inbox():
             results[path.name] = "FAILED (no JSON)"
             continue
         path.write_text(rebuild(fm, result, body))
-        dest = CONVERSATIONS / dest_sub / path.name
-        dest.parent.mkdir(parents=True, exist_ok=True)
+        slug = _summary_slug(result["title"])
+        name = f"{path.stem}-{slug}.md" if slug else path.name
+        (CONVERSATIONS / dest_sub).mkdir(parents=True, exist_ok=True)
+        dest = _unique(CONVERSATIONS / dest_sub, name)
         shutil.move(str(path), str(dest))
-        results[path.name] = f"ANALYZED -> {dest_sub}"
+        results[path.name] = f"ANALYZED -> {dest_sub}/{dest.name}"
     return results
 
 
