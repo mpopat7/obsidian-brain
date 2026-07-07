@@ -27,7 +27,7 @@ import numpy as np
 
 VAULT = Path(os.environ.get("VAULT", Path.home() / "obsidian-brain"))
 CONVERSATIONS = VAULT / "01-conversations"
-OLLAMA_HOST = os.environ.get("OLLAMA_HOST", "http://gx10-909f:11434")
+OLLAMA_HOST = os.environ.get("OLLAMA_HOST", "http://nuc.local:11434")
 EMBED_MODEL = os.environ.get("EMBED_MODEL", "mxbai-embed-large")
 CACHE = Path.home() / ".cache" / "obsidian-brain-embeddings.json"
 

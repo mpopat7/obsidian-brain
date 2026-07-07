@@ -24,7 +24,7 @@ from pathlib import Path
 PROXY_PORT = int(os.environ.get("OLLAMA_PROXY_PORT", "11435"))
 OLLAMA_BACKEND = os.environ.get("OLLAMA_BACKEND", "http://localhost:11434")
 VAULT_INBOX = Path.home() / "obsidian-brain" / "00-inbox"
-MAC_SYNC = os.environ.get("MAC_SYNC", "milen@100.113.183.4:/Users/milen/obsidian-brain/00-inbox/")
+MAC_SYNC = os.environ.get("MAC_SYNC", "user@your-mac-tailscale-ip:/Users/you/obsidian-brain/00-inbox/")
 
 LOGGED_PATHS = {"/api/chat", "/api/generate"}
 

@@ -21,7 +21,6 @@ SOURCE_DEST = {
     "claude-api": "claude",
     "ollama": "local",
     "chatgpt": "chatgpt",
-    "perplexity": "perplexity",
 }
 
 PROMPT = """You are organizing an AI conversation note. Read the conversation and respond with ONLY a JSON object, no other text:

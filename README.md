@@ -7,7 +7,7 @@ Scripts that capture AI conversations from Ollama and ChatGPT into `~/obsidian-b
 ### Ingestion (conversation → `00-inbox/`)
 | Script | Source | Mode |
 |---|---|---|
-| `scripts/proxy.py` | Ollama (NUC gx10-909f) — logging proxy on :11435 | Fully automatic |
+| `scripts/proxy.py` | Ollama (NUC on the LAN) — logging proxy on :11435 | Fully automatic |
 | `scripts/log_ollama.py` | Ollama — Python client helper (`ask()` / `chat()`) | On call |
 | `scripts/convert_chatgpt.py` | ChatGPT JSON export | Periodic / manual |
 
