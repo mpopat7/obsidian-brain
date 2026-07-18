@@ -17,6 +17,7 @@ VAULT = os.path.realpath(
 )
 SKIP_DIRS = {".obsidian", ".git", ".trash", "node_modules"}
 PROTOCOL = "2024-11-05"
+READ_CHUNK = 50000  # max chars per read_note window (~12.5k tokens, well under the tool-result cap)
 
 TOOLS = [
     {
@@ -35,11 +36,18 @@ TOOLS = [
     },
     {
         "name": "read_note",
-        "description": "Read one note's full contents. Path is relative to the vault root "
-                       "(e.g. '05-context/about-me.md').",
+        "description": "Read one note's contents. Path is relative to the vault root "
+                       "(e.g. '05-context/about-me.md'). Long notes are returned in "
+                       "character windows of at most {} chars; pass offset to page through "
+                       "a note the response says was truncated.".format(READ_CHUNK),
         "inputSchema": {
             "type": "object",
-            "properties": {"path": {"type": "string", "description": "Vault-relative path to a .md note."}},
+            "properties": {
+                "path": {"type": "string", "description": "Vault-relative path to a .md note."},
+                "offset": {"type": "integer", "description": "Start character (default 0)."},
+                "limit": {"type": "integer",
+                          "description": "Max chars to return (default and hard cap {}).".format(READ_CHUNK)},
+            },
             "required": ["path"],
         },
     },
@@ -89,12 +97,25 @@ def tool_search_notes(query, max_results=20):
     return "\n\n".join(hits) if hits else "No notes match {!r}.".format(query)
 
 
-def tool_read_note(path):
+def tool_read_note(path, offset=0, limit=READ_CHUNK):
     p = _safe(path)
     if not os.path.isfile(p):
         return "Not found: {}".format(path)
     with open(p, encoding="utf-8") as fh:
-        return fh.read()
+        data = fh.read()
+    total = len(data)
+    offset = min(max(0, int(offset)), total)
+    limit = min(max(1, int(limit)), READ_CHUNK)
+    chunk = data[offset:offset + limit]
+    end = offset + len(chunk)
+    if offset == 0 and end >= total:
+        return data  # whole note fits in one window — return it verbatim
+    header = "[{} — chars {}-{} of {}]\n".format(path, offset, end, total)
+    footer = ""
+    if end < total:
+        footer = "\n\n[truncated: {} chars remain — call read_note again with offset={} " \
+                 "to continue]".format(total - end, end)
+    return header + chunk + footer
 
 
 def tool_list_notes(subdir=""):
