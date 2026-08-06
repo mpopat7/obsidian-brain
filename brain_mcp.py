@@ -85,6 +85,7 @@ FOLDER_SCORE = {
     "02-knowledge": 48, "05-context": 48, "03-projects": 40, "06-decisions": 32,
     "01-conversations": 16, "00-inbox": 8, "04-templates": 0, "99-archive": 0,
 }
+CURATED = {"02-knowledge", "05-context", "03-projects", "06-decisions"}
 
 
 def _frontmatter_end(lines):
@@ -98,10 +99,13 @@ def _frontmatter_end(lines):
 
 def _score(rel, lines, matched, q):
     """Rank a hit by where the query landed, not where the file sits in the walk."""
-    score = FOLDER_SCORE.get(rel.split(os.sep)[0], 16)
+    sector = rel.split(os.sep)[0]
+    score = FOLDER_SCORE.get(sector, 16)
     stem = os.path.splitext(os.path.basename(rel))[0].lower()
     if q in stem or q in stem.replace("-", " ").replace("_", " "):
-        score += 40
+        # A hub's filename is chosen; a conversation's is auto-generated from the
+        # chat, so the same match is much weaker evidence there.
+        score += 40 if sector in CURATED else 20
     fm_end = _frontmatter_end(lines)
     if any(n <= fm_end for n, _ in matched):
         score += 25
