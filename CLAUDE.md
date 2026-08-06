@@ -30,6 +30,15 @@ Dry-run by default; pass --apply to write. analyze_inbox.py calls it automatical
 after filing new notes, so fresh imports self-link (it no-ops gracefully if the
 embedding host is unreachable). Run it standalone to re-link or re-tune.
 
+## Search Ranking (brain_mcp.py)
+`search_notes` scores every match and sorts before truncating — it does not return
+the first N files in filesystem order. Score = folder weight (02-knowledge/05-context
+highest, 01-conversations low, 99-archive zero) + 40 for a filename match (hyphens
+normalized, so "music production" matches `music-production.md`) + 25 for a
+frontmatter hit + 10 for a heading hit + match density. Folder weight is deliberately
+larger than the filename bonus so a curated hub outranks a chat that merely has the
+word in its auto-generated title. Full-vault scan is ~0.15s over 1,860 notes.
+
 ## Scripts
 All scripts live in developer/obsidian-brain/scripts/
 

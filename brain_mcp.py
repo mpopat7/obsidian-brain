@@ -78,6 +78,38 @@ def _walk():
                 yield os.path.join(root, f)
 
 
+# Distilled sectors answer a question; conversations are the raw material behind it.
+# Weighted above a filename match so a curated hub outranks a chat that merely
+# happens to have the word in its auto-generated title.
+FOLDER_SCORE = {
+    "02-knowledge": 48, "05-context": 48, "03-projects": 40, "06-decisions": 32,
+    "01-conversations": 16, "00-inbox": 8, "04-templates": 0, "99-archive": 0,
+}
+
+
+def _frontmatter_end(lines):
+    if not lines or lines[0].strip() != "---":
+        return 0
+    for i, ln in enumerate(lines[1:], 1):
+        if ln.strip() == "---":
+            return i
+    return 0
+
+
+def _score(rel, lines, matched, q):
+    """Rank a hit by where the query landed, not where the file sits in the walk."""
+    score = FOLDER_SCORE.get(rel.split(os.sep)[0], 16)
+    stem = os.path.splitext(os.path.basename(rel))[0].lower()
+    if q in stem or q in stem.replace("-", " ").replace("_", " "):
+        score += 40
+    fm_end = _frontmatter_end(lines)
+    if any(n <= fm_end for n, _ in matched):
+        score += 25
+    if any(text.lstrip().startswith("#") for _, text in matched):
+        score += 10
+    return score + min(len(matched), 10)
+
+
 def tool_search_notes(query, max_results=20):
     q = query.lower()
     hits = []
@@ -91,10 +123,16 @@ def tool_search_notes(query, max_results=20):
         if matched:
             rel = os.path.relpath(path, VAULT)
             snippet = "\n".join("  L{}: {}".format(n, t[:200]) for n, t in matched[:5])
-            hits.append("### {}\n{}".format(rel, snippet))
-            if len(hits) >= max_results:
-                break
-    return "\n\n".join(hits) if hits else "No notes match {!r}.".format(query)
+            hits.append((_score(rel, lines, matched, q), rel,
+                         "### {}\n{}".format(rel, snippet)))
+    if not hits:
+        return "No notes match {!r}.".format(query)
+    hits.sort(key=lambda h: (-h[0], h[1]))
+    body = "\n\n".join(text for _, _, text in hits[:max_results])
+    if len(hits) > max_results:
+        body += "\n\n[{} more notes matched; showing the {} best]".format(
+            len(hits) - max_results, max_results)
+    return body
 
 
 def tool_read_note(path, offset=0, limit=READ_CHUNK):
