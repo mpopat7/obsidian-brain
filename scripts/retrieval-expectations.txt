@@ -1,0 +1,25 @@
+# Queries the brain must answer with the right note, one per line:
+#   query -> expected-note-stem
+#
+# A query fails if the expected note is not in the top 3 results. This is the
+# regression net for search ranking: it catches both a scoring change that
+# demotes a hub AND a newly written note that steals someone else's query.
+# Add a line whenever you write a hub note you'd want found.
+
+algoverse         -> algoverse-research
+portpy            -> algoverse-research
+hiview            -> work-hiview
+machines          -> machines
+career            -> career-direction
+goldman sachs     -> career-direction
+music production  -> music-production
+logic pro         -> music-production
+808               -> music-production
+stem splitter     -> music-production
+nutrition         -> nutrition-and-training
+protein           -> nutrition-and-training
+resume            -> resume
+graduation date   -> resume
+college transfer  -> college-transfer
+signature manager -> signature-manager
+inquiry essay     -> research-writing
