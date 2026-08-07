@@ -23,3 +23,5 @@ graduation date   -> resume
 college transfer  -> college-transfer
 signature manager -> signature-manager
 inquiry essay     -> research-writing
+capital one aeip  -> student-programs
+codex              -> claude-codex-dual-workflow
