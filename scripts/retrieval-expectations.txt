@@ -25,3 +25,8 @@ signature manager -> signature-manager
 inquiry essay     -> research-writing
 capital one aeip  -> student-programs
 codex              -> claude-codex-dual-workflow
+boris method       -> opus5-migration-claims
+opus 5 migration   -> opus5-migration-claims
+logic pro scripting -> logic-pro-scriptability
+ai daw              -> ai-daw-mix-agent
+mix agent           -> ai-daw-mix-agent
