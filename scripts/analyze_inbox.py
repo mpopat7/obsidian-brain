@@ -19,6 +19,8 @@ MAX_CHARS = 6000
 SOURCE_DEST = {
     "claude-ai": "claude",
     "claude-api": "claude",
+    "claude-code": "claude-code",
+    "codex": "codex",
     "ollama": "local",
     "chatgpt": "chatgpt",
 }
@@ -88,7 +90,10 @@ def analyze(body):
 def rebuild(fm, result, body):
     fm["title"] = result["title"]
     fm["summary"] = result["summary"]
-    order = ["date", "source", "model", "title", "summary", "tags", "project"]
+    order = [
+        "date", "source", "model", "title", "summary", "tags", "project",
+        "session_id", "capture_revision", "capture_until", "continuation_of",
+    ]
     lines = ["---"]
     for key in order:
         if key == "tags":

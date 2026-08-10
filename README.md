@@ -1,6 +1,6 @@
 # Obsidian AI Brain — Scripts
 
-Scripts that capture AI conversations from Ollama and ChatGPT into `~/obsidian-brain/` (a local Obsidian vault synced across devices via Obsidian Sync), then analyze and file them. Claude API logging is planned but not yet built.
+Scripts that capture AI conversations from Ollama, ChatGPT, Claude Code, and Codex into `~/obsidian-brain/` (a local Obsidian vault synced across devices via Obsidian Sync), then analyze and file them. Claude API logging is planned but not yet built.
 
 ## Scripts
 
@@ -10,6 +10,36 @@ Scripts that capture AI conversations from Ollama and ChatGPT into `~/obsidian-b
 | `scripts/proxy.py` | Ollama (NUC on the LAN) — logging proxy on :11435 | Fully automatic |
 | `scripts/log_ollama.py` | Ollama — Python client helper (`ask()` / `chat()`) | On call |
 | `scripts/convert_chatgpt.py` | ChatGPT JSON export | Periodic / manual |
+| `scripts/convert_claude_code.py` | Settled `~/.claude/projects/**/*.jsonl` sessions | Hourly local sweep + fallback before `/brain-triage` |
+| `scripts/convert_codex.py` | Settled `~/.codex/sessions/**/*.jsonl` chats | Hourly local sweep + fallback before `/brain-triage` |
+| `scripts/capture_chats.py` | Runs both local transcript converters | Hourly LaunchAgent target |
+
+Claude Code and Codex each use a vault-synced watermark, so the first run imports nothing from
+the past. Later runs capture new sessions with at least two user turns after they have been idle
+for three hours. If a captured session is resumed, its next settled capture is a separate,
+back-linked continuation containing only messages added since the prior capture; one new user
+turn is enough for a continuation. Only visible Codex user/assistant messages are included;
+instructions, reasoning, and tool traffic are excluded. Both initial-capture thresholds can be
+overridden for diagnostics:
+
+```bash
+python3 scripts/convert_claude_code.py --init
+python3 scripts/convert_codex.py --init
+python3 scripts/capture_chats.py --dry-run
+python3 scripts/capture_chats.py --settle-hours 1 --min-turns 3
+```
+
+On macOS, install the hourly local sweep once per Mac that runs Claude Code:
+
+```bash
+python3 scripts/install_claude_code_capture.py
+```
+
+The LaunchAgent runs only the two deterministic converters—never Ollama or inbox triage. Eligible Markdown files
+therefore remain visible in `00-inbox/` until `/brain-triage` is run. Because the sweep is hourly,
+a new session or continuation normally appears between three and four hours after its last write.
+Inspect or remove the agent with `--status` or `--uninstall`; logs live at
+`~/Library/Logs/obsidian-brain-claude-code-capture.log`.
 
 ### Analysis (`00-inbox/` → `01-conversations/<source>/`)
 | Script | What it does |
@@ -29,6 +59,3 @@ The vault lives at `~/obsidian-brain/`. Sync is handled by Obsidian Sync — no 
 
 ## No dependencies
 Standard library only (`json`, `pathlib`, `urllib`, `datetime`, `re`, `shutil`). Python ≥ 3.8.
-
-## No dependencies
-Standard library only (`json`, `pathlib`, `urllib`, `datetime`). Python ≥ 3.8.
