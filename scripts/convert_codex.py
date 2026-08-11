@@ -14,9 +14,9 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 try:
-    from .capture_state import CaptureState, capture_states
+    from .capture_state import CaptureState, capture_states, migrate_state_file
 except ImportError:
-    from capture_state import CaptureState, capture_states
+    from capture_state import CaptureState, capture_states, migrate_state_file
 
 
 VAULT = Path(os.environ.get("VAULT", Path.home() / "obsidian-brain"))
@@ -24,7 +24,8 @@ INBOX = VAULT / "00-inbox"
 CODEX_DATA = Path(os.environ.get("CODEX_DATA_DIR", Path.home() / ".codex"))
 SESSION_DIRS = (CODEX_DATA / "sessions", CODEX_DATA / "archived_sessions")
 SESSION_INDEX = CODEX_DATA / "session_index.jsonl"
-WATERMARK_PATH = INBOX / "_codex-capture.md"
+WATERMARK_PATH = VAULT / "99-archive" / "system" / "capture-state" / "codex.md"
+LEGACY_WATERMARK_NAME = "_codex-capture.md"
 DEFAULT_SETTLE_HOURS = 3.0
 DEFAULT_MIN_TURNS = 2
 
@@ -69,28 +70,34 @@ def _yaml_string(value):
 
 
 def read_watermark():
-    if not WATERMARK_PATH.exists():
+    path = WATERMARK_PATH if WATERMARK_PATH.exists() else INBOX / LEGACY_WATERMARK_NAME
+    if not path.exists():
         return None
     match = re.search(
         r"^watermark:\s*[\"']?([^\n\"']+)",
-        WATERMARK_PATH.read_text(errors="replace"),
+        path.read_text(errors="replace"),
         re.MULTILINE,
     )
     return _parse_time(match.group(1).strip()) if match else None
 
 
+def migrate_watermark():
+    return migrate_state_file(INBOX / LEGACY_WATERMARK_NAME, WATERMARK_PATH)
+
+
 def initialize_watermark(now=None):
     existing = read_watermark()
     if existing:
+        migrate_watermark()
         return existing, False
     now = now or _utc_now()
-    INBOX.mkdir(parents=True, exist_ok=True)
+    WATERMARK_PATH.parent.mkdir(parents=True, exist_ok=True)
     WATERMARK_PATH.write_text(
         "---\n"
         f"watermark: {_iso(now)}\n"
         "---\n"
-        "Codex capture begins at this timestamp. This file is ignored by inbox "
-        "triage and synced by Obsidian Sync.\n"
+        "Codex capture begins at this timestamp. This state is synced by "
+        "Obsidian Sync and kept outside the inbox.\n"
     )
     return now, True
 
@@ -311,6 +318,8 @@ def _write_session(records, path, activity, titles, state=None):
 def sweep(now=None, settle_hours=DEFAULT_SETTLE_HOURS, min_turns=DEFAULT_MIN_TURNS,
           dry_run=False):
     now = now or _utc_now()
+    if not dry_run:
+        migrate_watermark()
     watermark = read_watermark()
     if watermark is None:
         if dry_run:

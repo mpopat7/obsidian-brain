@@ -25,6 +25,15 @@ def parse_time(value):
     return parsed.astimezone(timezone.utc)
 
 
+def migrate_state_file(legacy_path, current_path):
+    """Move one legacy vault-state note without replacing current state."""
+    if current_path.exists() or not legacy_path.exists():
+        return False
+    current_path.parent.mkdir(parents=True, exist_ok=True)
+    legacy_path.replace(current_path)
+    return True
+
+
 def _scalar(value):
     value = value.strip()
     if value[:1] in ('"', "'"):

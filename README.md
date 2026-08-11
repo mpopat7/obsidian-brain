@@ -14,8 +14,11 @@ Scripts that capture AI conversations from Ollama, ChatGPT, Claude Code, and Cod
 | `scripts/convert_codex.py` | Settled `~/.codex/sessions/**/*.jsonl` chats | Hourly local sweep + fallback before `/brain-triage` |
 | `scripts/capture_chats.py` | Runs both local transcript converters | Hourly LaunchAgent target |
 
-Claude Code and Codex each use a vault-synced watermark, so the first run imports nothing from
-the past. Later runs capture new sessions with at least two user turns after they have been idle
+Claude Code and Codex each use a vault-synced watermark under
+`99-archive/system/capture-state/`, so persistent state does not clutter the inbox and the first
+run imports nothing from the past. Existing `_claude-code-capture.md` and `_codex-capture.md`
+inbox markers migrate there automatically on the next non-dry capture sweep. Later runs capture
+new sessions with at least two user turns after they have been idle
 for three hours. If a captured session is resumed, its next settled capture is a separate,
 back-linked continuation containing only messages added since the prior capture; one new user
 turn is enough for a continuation. Only visible Codex user/assistant messages are included;

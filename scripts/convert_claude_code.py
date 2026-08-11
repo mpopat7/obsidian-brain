@@ -15,9 +15,9 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 try:
-    from .capture_state import CaptureState, capture_states
+    from .capture_state import CaptureState, capture_states, migrate_state_file
 except ImportError:
-    from capture_state import CaptureState, capture_states
+    from capture_state import CaptureState, capture_states, migrate_state_file
 
 
 VAULT = Path(os.environ.get("VAULT", Path.home() / "obsidian-brain"))
@@ -25,7 +25,8 @@ INBOX = VAULT / "00-inbox"
 TRANSCRIPT_ROOT = Path(
     os.environ.get("CLAUDE_PROJECTS_DIR", Path.home() / ".claude" / "projects")
 )
-WATERMARK_PATH = INBOX / "_claude-code-capture.md"
+WATERMARK_PATH = VAULT / "99-archive" / "system" / "capture-state" / "claude-code.md"
+LEGACY_WATERMARK_NAME = "_claude-code-capture.md"
 DEFAULT_SETTLE_HOURS = 3.0
 DEFAULT_MIN_TURNS = 2
 MAX_TOOL_INPUT_CHARS = 360
@@ -73,28 +74,34 @@ def _yaml_string(value):
 
 
 def read_watermark():
-    if not WATERMARK_PATH.exists():
+    path = WATERMARK_PATH if WATERMARK_PATH.exists() else INBOX / LEGACY_WATERMARK_NAME
+    if not path.exists():
         return None
     match = re.search(
         r"^watermark:\s*[\"']?([^\n\"']+)",
-        WATERMARK_PATH.read_text(errors="replace"),
+        path.read_text(errors="replace"),
         re.MULTILINE,
     )
     return _parse_time(match.group(1).strip()) if match else None
 
 
+def migrate_watermark():
+    return migrate_state_file(INBOX / LEGACY_WATERMARK_NAME, WATERMARK_PATH)
+
+
 def initialize_watermark(now=None):
     existing = read_watermark()
     if existing:
+        migrate_watermark()
         return existing, False
     now = now or _utc_now()
-    INBOX.mkdir(parents=True, exist_ok=True)
+    WATERMARK_PATH.parent.mkdir(parents=True, exist_ok=True)
     content = (
         "---\n"
         f"watermark: {_iso(now)}\n"
         "---\n"
-        "Claude Code capture begins at this timestamp. This file is ignored by "
-        "inbox triage and synced by Obsidian Sync.\n"
+        "Claude Code capture begins at this timestamp. This state is synced by "
+        "Obsidian Sync and kept outside the inbox.\n"
     )
     WATERMARK_PATH.write_text(content)
     return now, True
@@ -322,6 +329,8 @@ def _write_session(records, path, activity, state=None):
 def sweep(now=None, settle_hours=DEFAULT_SETTLE_HOURS, min_turns=DEFAULT_MIN_TURNS,
           dry_run=False):
     now = now or _utc_now()
+    if not dry_run:
+        migrate_watermark()
     watermark = read_watermark()
     if watermark is None:
         if dry_run:

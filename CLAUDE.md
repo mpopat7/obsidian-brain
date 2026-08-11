@@ -19,6 +19,7 @@ Ingestion scripts that capture AI conversations from multiple sources into ~/obs
 Ingestion scripts write to ~/obsidian-brain/00-inbox/
 Triage is automated by analyze_inbox.py: asks local Ollama for title/summary/tags,
 writes them to frontmatter, moves the note to 01-conversations/<source>/.
+Persistent capture watermarks live under 99-archive/system/capture-state/, not in the inbox.
 Run it when Obsidian Sync is idle (moving files mid-sync can create duplicates).
 
 ## Peer Links (graph, not star)

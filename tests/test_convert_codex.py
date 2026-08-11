@@ -38,7 +38,9 @@ class CodexCaptureTests(unittest.TestCase):
         capture.CODEX_DATA = self.codex
         capture.SESSION_DIRS = (self.sessions, self.archive)
         capture.SESSION_INDEX = self.codex / "session_index.jsonl"
-        capture.WATERMARK_PATH = self.inbox / "_codex-capture.md"
+        capture.WATERMARK_PATH = (
+            self.vault / "99-archive" / "system" / "capture-state" / "codex.md"
+        )
 
     def tearDown(self):
         (
@@ -126,6 +128,20 @@ class CodexCaptureTests(unittest.TestCase):
         self.assertTrue(result["initialized"])
         self.assertEqual([], result["captured"])
         self.assertEqual(now, capture.read_watermark())
+
+    def test_existing_inbox_watermark_moves_to_system_state(self):
+        legacy = self.inbox / capture.LEGACY_WATERMARK_NAME
+        legacy.write_text(
+            "---\nwatermark: 2026-08-10T12:00:00Z\n---\nLegacy capture state.\n"
+        )
+
+        capture.sweep(now=datetime(2026, 8, 10, 15, 0, tzinfo=UTC))
+
+        self.assertFalse(legacy.exists())
+        self.assertTrue(capture.WATERMARK_PATH.exists())
+        self.assertEqual(
+            datetime(2026, 8, 10, 12, 0, tzinfo=UTC), capture.read_watermark()
+        )
 
     def test_capture_uses_visible_messages_and_deduplicates(self):
         capture.initialize_watermark(datetime(2026, 8, 10, 12, 0, tzinfo=UTC))

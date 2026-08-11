@@ -34,7 +34,9 @@ class ClaudeCodeCaptureTests(unittest.TestCase):
         capture.VAULT = self.vault
         capture.INBOX = self.inbox
         capture.TRANSCRIPT_ROOT = self.transcripts
-        capture.WATERMARK_PATH = self.inbox / "_claude-code-capture.md"
+        capture.WATERMARK_PATH = (
+            self.vault / "99-archive" / "system" / "capture-state" / "claude-code.md"
+        )
         analyze_inbox.VAULT = self.vault
         analyze_inbox.INBOX = self.inbox
         analyze_inbox.CONVERSATIONS = self.vault / "01-conversations"
@@ -109,6 +111,20 @@ class ClaudeCodeCaptureTests(unittest.TestCase):
         self.assertEqual([], result["captured"])
         self.assertEqual(now, capture.read_watermark())
         self.assertEqual([], list(self.inbox.glob("20*.md")))
+
+    def test_existing_inbox_watermark_moves_to_system_state(self):
+        legacy = self.inbox / capture.LEGACY_WATERMARK_NAME
+        legacy.write_text(
+            "---\nwatermark: 2026-08-10T12:00:00Z\n---\nLegacy capture state.\n"
+        )
+
+        capture.sweep(now=datetime(2026, 8, 10, 15, 0, tzinfo=UTC))
+
+        self.assertFalse(legacy.exists())
+        self.assertTrue(capture.WATERMARK_PATH.exists())
+        self.assertEqual(
+            datetime(2026, 8, 10, 12, 0, tzinfo=UTC), capture.read_watermark()
+        )
 
     def test_capture_is_settled_deduplicated_and_readable(self):
         capture.initialize_watermark(datetime(2026, 8, 10, 12, 0, tzinfo=UTC))
