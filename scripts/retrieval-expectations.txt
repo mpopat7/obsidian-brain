@@ -33,3 +33,5 @@ mix agent           -> ai-daw-mix-agent
 mcp server            -> mcp-server-management
 sync-mcp              -> mcp-server-management
 mit catalyst           -> mit-catalyst-application
+code mode              -> claude-codex-dual-workflow
+sync-projects          -> dev-config-repo-sync
