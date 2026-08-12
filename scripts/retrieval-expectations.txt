@@ -23,7 +23,7 @@ graduation date   -> resume
 college transfer  -> college-transfer
 signature manager -> signature-manager
 inquiry essay     -> research-writing
-capital one aeip  -> student-programs
+capital one aeip  -> capital-one-aeip
 codex              -> claude-codex-dual-workflow
 boris method       -> opus5-migration-claims
 opus 5 migration   -> opus5-migration-claims
