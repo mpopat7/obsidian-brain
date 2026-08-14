@@ -35,3 +35,6 @@ sync-mcp              -> mcp-server-management
 mit catalyst           -> mit-catalyst-application
 code mode              -> claude-codex-dual-workflow
 sync-projects          -> dev-config-repo-sync
+renewals dashboard     -> hiview-renewals-dashboard
+open-source contribution -> github-presence-and-open-source-contribution
+ics calendar           -> ics-calendar-troubleshooting
