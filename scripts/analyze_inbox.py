@@ -43,6 +43,38 @@ def _summary_slug(title, max_words=4):
     return "-".join(kept[:max_words])
 
 
+# Longest first: "-claude-code" must win over "-claude-ai" on a claude-code stem.
+_SOURCE_TOKENS = ("claude-code", "claude-api", "claude-ai", "perplexity",
+                  "chatgpt", "codex", "ollama")
+_CONTINUED_RE = re.compile(r"(-continued-\d+)$")
+
+
+def _filed_name(stem, slug):
+    """Build the filed name, replacing any topic the capture already put there.
+
+    The transcript converters name a session "<date>-<source>-<topic>". Appending
+    the analyzed topic to that stated it twice and produced 110-character
+    filenames like "...-log-appcom-log-application-internship-tracker". QuickAdd
+    writes a bare "<date>-claude-ai" with no topic, so there the slug is simply
+    appended and nothing is lost.
+    """
+    if not slug:
+        return None
+    continued = ""
+    match = _CONTINUED_RE.search(stem)
+    if match:
+        # The revision marker identifies a delta capture; it must survive.
+        continued = match.group(1)
+        stem = stem[: match.start()]
+    for token in _SOURCE_TOKENS:
+        marker = "-" + token
+        index = stem.find(marker)
+        if index != -1:
+            stem = stem[: index + len(marker)]
+            break
+    return f"{stem}-{slug}{continued}.md"
+
+
 def _unique(folder, name):
     dest = folder / name
     n = 2
@@ -126,8 +158,7 @@ def analyze_inbox():
             results[path.name] = "FAILED (no JSON)"
             continue
         path.write_text(rebuild(fm, result, body))
-        slug = _summary_slug(result["title"])
-        name = f"{path.stem}-{slug}.md" if slug else path.name
+        name = _filed_name(path.stem, _summary_slug(result["title"])) or path.name
         (CONVERSATIONS / dest_sub).mkdir(parents=True, exist_ok=True)
         dest = _unique(CONVERSATIONS / dest_sub, name)
         shutil.move(str(path), str(dest))
