@@ -16,8 +16,10 @@ from pathlib import Path
 
 try:
     from .capture_state import CaptureState, capture_states, migrate_state_file
+    from .capture_text import clean_title, is_scaffolding, neutralize_wikilinks
 except ImportError:
     from capture_state import CaptureState, capture_states, migrate_state_file
+    from capture_text import clean_title, is_scaffolding, neutralize_wikilinks
 
 
 VAULT = Path(os.environ.get("VAULT", Path.home() / "obsidian-brain"))
@@ -178,10 +180,16 @@ def _session_title(records):
     ]
     if titles:
         return titles[-1]
+    # Fall through slash-command envelopes and skill preambles: slugging those
+    # produced filenames like "...command-messagelog-appcommand-message...".
     for record in records:
         texts = _text_blocks(record) if record.get("type") == "user" else []
-        if texts:
-            return re.sub(r"\s+", " ", texts[0])[:80].strip()
+        for text in texts:
+            if is_scaffolding(text):
+                continue
+            title = clean_title(text)
+            if title:
+                return title
     return "Claude Code session"
 
 
@@ -285,7 +293,9 @@ def render_messages(records, after=None):
                 # extremely verbose and are not part of the visible conversation scrollback.
                 continue
 
-    return "\n".join(lines).strip() + "\n"
+    # Transcript text is quoted content, never a vault edge. Left raw, any
+    # [[...]] it contains becomes an unresolved ghost node in the graph.
+    return neutralize_wikilinks("\n".join(lines).strip()) + "\n"
 
 
 def _write_session(records, path, activity, state=None):

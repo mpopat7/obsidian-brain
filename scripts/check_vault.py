@@ -7,8 +7,13 @@ Two checks, each guarding a failure that actually happened:
               that note in the top N. Catches a scoring change that demotes a
               hub, and a newly written note that steals another hub's query.
   links     — no [[link]] in a curated note may point at a note that doesn't
-              exist. Conversation captures are skipped: they quote [[link]] as
-              prose and would drown the signal in false positives.
+              exist. Conversation captures are skipped here: they quote [[link]]
+              as prose and would drown the signal in false positives.
+  ghosts    — no capture may contain a LIVE wikilink at all. Quoted prose is
+              exactly the problem: written raw it became an unresolved node and
+              the capture showed up in the graph as a small island cluster. The
+              converters backtick-wrap transcript links, so any live one here
+              means a capture path bypassed that.
 
 Exits non-zero if anything fails, so it can gate a triage run.
 
@@ -30,7 +35,12 @@ EXPECTATIONS = os.path.join(os.path.dirname(os.path.abspath(__file__)),
 # 06-decisions is append-only: it quotes links that were broken at the time and
 # then fixed, so flagging them is unactionable by rule.
 CURATED = ("02-knowledge", "03-projects", "05-context")
+CAPTURES = ("01-conversations",)
 LINK_RE = re.compile(r"\[\[([^\]]+)\]\]")
+# What Obsidian actually links: closed on one line, no bracket inside the target.
+STRICT_LINK_RE = re.compile(r"\[\[([^\[\]\n]+)\]\]")
+# The pipeline writes exactly one live link into a capture, by design.
+ALLOWED_CAPTURE_LINK = re.compile(r"^>\s*Continuation of \[\[")
 
 
 def strip_code(text):
@@ -103,6 +113,36 @@ def check_links():
     return not broken
 
 
+def check_ghosts():
+    stems = {os.path.splitext(os.path.basename(p))[0] for p in brain_mcp._walk()}
+    ghosts = []
+    for path in brain_mcp._walk():
+        rel = os.path.relpath(path, VAULT)
+        if not rel.startswith(CAPTURES):
+            continue
+        fenced = False
+        with open(path, encoding="utf-8", errors="ignore") as fh:
+            for lineno, line in enumerate(fh, 1):
+                if line.lstrip().startswith("```"):
+                    fenced = not fenced
+                    continue
+                if fenced or "[[" not in line or ALLOWED_CAPTURE_LINK.match(line):
+                    continue
+                # strip_code needs whole-file context for fences, so the fence
+                # state is tracked here and it is used only for inline spans.
+                for m in STRICT_LINK_RE.finditer(strip_code(line)):
+                    target = m.group(1).split("|")[0].split("#")[0].strip()
+                    if target and target not in stems:
+                        ghosts.append((rel, lineno, target))
+
+    print("ghosts: {} live ghost [[link]]s in conversation captures".format(len(ghosts)))
+    for rel, lineno, target in ghosts[:20]:
+        print("  FAIL  {}:{} -> [[{}]]".format(rel, lineno, target))
+    if len(ghosts) > 20:
+        print("  ... and {} more".format(len(ghosts) - 20))
+    return not ghosts
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--top", type=int, default=3,
@@ -110,6 +150,7 @@ def main():
     args = ap.parse_args()
     ok = check_retrieval(args.top)
     ok = check_links() and ok
+    ok = check_ghosts() and ok
     print("\n{}".format("PASS" if ok else "FAIL"))
     sys.exit(0 if ok else 1)
 

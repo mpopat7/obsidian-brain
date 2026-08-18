@@ -15,8 +15,10 @@ from pathlib import Path
 
 try:
     from .capture_state import CaptureState, capture_states, migrate_state_file
+    from .capture_text import clean_title, is_scaffolding, neutralize_wikilinks
 except ImportError:
     from capture_state import CaptureState, capture_states, migrate_state_file
+    from capture_text import clean_title, is_scaffolding, neutralize_wikilinks
 
 
 VAULT = Path(os.environ.get("VAULT", Path.home() / "obsidian-brain"))
@@ -199,8 +201,11 @@ def _session_title(records, path, titles):
         return titles[session_id]
     for record in records:
         message = _visible_user_message(record)
-        if message:
-            return re.sub(r"\s+", " ", message)[:80].strip()
+        if not message or is_scaffolding(message):
+            continue
+        title = clean_title(message)
+        if title:
+            return title
     return "Codex session"
 
 
@@ -262,7 +267,9 @@ def render_messages(records, after=None):
         ):
             append_message("Codex", _response_text(payload))
 
-    return "\n".join(lines).strip() + "\n"
+    # Transcript text is quoted content, never a vault edge. Left raw, any
+    # [[...]] it contains becomes an unresolved ghost node in the graph.
+    return neutralize_wikilinks("\n".join(lines).strip()) + "\n"
 
 
 def _transcript_paths():

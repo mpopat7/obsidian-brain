@@ -58,7 +58,27 @@ python3 scripts/analyze_inbox.py                       # title/summarize/tag + f
 python3 scripts/relate_notes.py                        # DRY RUN: preview ## Related peer links
 python3 scripts/relate_notes.py --apply                # write ## Related into every conversation note
 python3 scripts/relate_notes.py --source chatgpt --k 5 --floor 0.62 --apply   # tune scope/precision
+python3 scripts/check_vault.py                         # gate: retrieval + curated links + capture ghosts
+python3 scripts/repair_ghost_links.py --dry-run        # one-time: neutralize ghost links already in the vault
 ```
+
+## Transcript text is never a graph edge
+Captures quote whatever the session contained — `[[ -n "$x" ]]`, `[[:space:]]`,
+CSV rows, and `~/dev/memory` note names that cannot resolve here. Written raw,
+Obsidian renders each as an unresolved node, and a capture whose only links are
+quoted noise shows up in the graph as a small island cluster.
+
+`scripts/capture_text.py` backtick-wraps every wikilink the converters copy out of
+a transcript, so the text survives exactly while the edge disappears. Real edges
+are written by triage afterwards. The pipeline's own `> Continuation of [[…]]`
+line is the single live link a capture may carry.
+
+The same sanitizer strips slash-command envelopes before a title is slugged —
+without it, a `/log-app` session became
+`...command-messagelog-appcommand-message-command-namelog-appcom...`.
+
+`check_vault.py`'s `ghosts` check fails the build if a capture ever holds a live
+wikilink again. Background: `06-decisions/2026-08-18-transcript-links-are-not-graph-edges.md`.
 
 ## Note Frontmatter
 Every ingested note uses:

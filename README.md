@@ -13,6 +13,7 @@ Scripts that capture AI conversations from Ollama, ChatGPT, Claude Code, and Cod
 | `scripts/convert_claude_code.py` | Settled `~/.claude/projects/**/*.jsonl` sessions | Hourly local sweep + fallback before `/brain-triage` |
 | `scripts/convert_codex.py` | Settled `~/.codex/sessions/**/*.jsonl` chats | Hourly local sweep + fallback before `/brain-triage` |
 | `scripts/capture_chats.py` | Runs both local transcript converters | Hourly LaunchAgent target |
+| `scripts/capture_text.py` | Shared hygiene for both converters: neutralizes quoted `[[wikilinks]]` and strips slash-command envelopes from titles | Imported, not run |
 
 Claude Code and Codex each use a vault-synced watermark under
 `99-archive/system/capture-state/`, so persistent state does not clutter the inbox and the first
@@ -56,6 +57,23 @@ python scripts/analyze_inbox.py
 ```
 
 **⚠️ Run when Obsidian Sync is idle.** `analyze_inbox.py` moves files; doing that while Sync is mid-download can leave duplicate notes (analyzed copy in `01-conversations/`, stale copy back in `00-inbox/`). Best run on the NUC, or pause Sync during a bulk run.
+
+### Checks and repair
+| Script | What it does |
+|---|---|
+| `scripts/check_vault.py` | Three gates: retrieval expectations still rank, curated notes have no dangling links, and no capture holds a live ghost link. Exits non-zero so it can gate a triage run. |
+| `scripts/repair_ghost_links.py` | One-time cleanup for captures written before the converters sanitized their output. Backtick-wraps unresolved links in `01-conversations/**` only; curated notes are never touched. `--dry-run` first. |
+
+```bash
+python3 scripts/check_vault.py
+python3 scripts/repair_ghost_links.py --dry-run
+```
+
+Why this exists: a transcript quotes `[[ -n "$x" ]]`, `[[:space:]]`, CSV rows and
+`~/dev/memory` note names. Obsidian reads every one as a wikilink and draws an
+unresolved node, so a capture whose only links are quoted noise appears in the
+graph as a small island cluster. See
+`06-decisions/2026-08-18-transcript-links-are-not-graph-edges.md`.
 
 ## Vault
 The vault lives at `~/obsidian-brain/`. Sync is handled by Obsidian Sync — no git needed for the vault. Ingestion scripts write to `~/obsidian-brain/00-inbox/`; `analyze_inbox.py` empties the inbox into `01-conversations/`.

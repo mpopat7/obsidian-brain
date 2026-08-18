@@ -211,3 +211,36 @@ class ClaudeCodeCaptureTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class SanitizedCaptureTest(unittest.TestCase):
+    """The two capture defects that seeded ghost nodes and garbage filenames."""
+
+    def _records(self, first_user_text):
+        return [
+            {"type": "user", "timestamp": "2026-08-17T00:00:00Z", "sessionId": "s1",
+             "message": {"content": [{"type": "text", "text": first_user_text}]}},
+            {"type": "assistant", "timestamp": "2026-08-17T00:01:00Z",
+             "message": {"model": "claude-opus-5", "content": [
+                 {"type": "text", "text": 'saved to [[resume-grad-date-variants]]'}]}},
+        ]
+
+    def test_body_never_emits_a_live_wikilink(self):
+        body = capture.render_messages(self._records("hello"))
+        self.assertIn("`[[resume-grad-date-variants]]`", body)
+        self.assertNotIn(" [[resume-grad-date-variants]]", body)
+
+    def test_title_skips_a_slash_command_envelope(self):
+        raw = ("<command-message>log-app</command-message>\n"
+               "<command-name>/log-app</command-name>\n\n"
+               "Base directory for this skill: /Users/milen/.claude/skills/log-app")
+        records = self._records(raw)
+        records.append({"type": "user", "timestamp": "2026-08-17T00:02:00Z",
+                        "message": {"content": [
+                            {"type": "text", "text": "log the IBM role"}]}})
+        self.assertEqual(capture._session_title(records), "log the IBM role")
+
+    def test_title_falls_back_when_only_scaffolding_exists(self):
+        raw = "<command-name>/exit</command-name>"
+        self.assertEqual(capture._session_title(self._records(raw)),
+                         "Claude Code session")
