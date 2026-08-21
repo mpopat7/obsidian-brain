@@ -75,6 +75,15 @@ class CodexCaptureTests(unittest.TestCase):
             },
             {
                 "timestamp": timestamps[0],
+                "type": "response_item",
+                "payload": {
+                    "type": "message",
+                    "role": "user",
+                    "content": [{"type": "input_text", "text": "First question"}],
+                },
+            },
+            {
+                "timestamp": timestamps[0],
                 "type": "event_msg",
                 "payload": {"type": "user_message", "message": "First question"},
             },
@@ -92,6 +101,15 @@ class CodexCaptureTests(unittest.TestCase):
                 "timestamp": timestamps[0],
                 "type": "event_msg",
                 "payload": {"type": "agent_message", "message": "First answer", "phase": "final_answer"},
+            },
+            {
+                "timestamp": timestamps[1],
+                "type": "response_item",
+                "payload": {
+                    "type": "message",
+                    "role": "user",
+                    "content": [{"type": "input_text", "text": "Second question"}],
+                },
             },
             {
                 "timestamp": timestamps[1],
@@ -165,6 +183,8 @@ class CodexCaptureTests(unittest.TestCase):
         self.assertIn("## Codex", note)
         self.assertIn("Working on it", note)
         self.assertIn("Second answer", note)
+        self.assertEqual(1, note.count("First question"))
+        self.assertEqual(1, note.count("Second question"))
         self.assertNotIn("private instructions", note)
         self.assertNotIn("secret tool output", note)
 
@@ -185,13 +205,25 @@ class CodexCaptureTests(unittest.TestCase):
         resumed = [
             {
                 "timestamp": "2026-08-11T08:00:00Z",
-                "type": "event_msg",
-                "payload": {"type": "user_message", "message": "Resumed Codex question"},
+                "type": "response_item",
+                "payload": {
+                    "type": "message",
+                    "role": "user",
+                    "content": [
+                        {"type": "input_text", "text": "Resumed Codex question"}
+                    ],
+                },
             },
             {
                 "timestamp": "2026-08-11T08:01:00Z",
-                "type": "event_msg",
-                "payload": {"type": "agent_message", "message": "Resumed Codex answer", "phase": "final_answer"},
+                "type": "response_item",
+                "payload": {
+                    "type": "message",
+                    "role": "assistant",
+                    "content": [
+                        {"type": "output_text", "text": "Resumed Codex answer"}
+                    ],
+                },
             },
         ]
         with transcript.open("a") as handle:
@@ -211,6 +243,60 @@ class CodexCaptureTests(unittest.TestCase):
         self.assertIn("Resumed Codex answer", body)
         self.assertNotIn("First question", body)
         self.assertNotIn("First answer", body)
+
+    def test_response_item_only_schema_ignores_injected_context(self):
+        records = [
+            {
+                "type": "response_item",
+                "payload": {
+                    "type": "message",
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "input_text",
+                            "text": "# AGENTS.md instructions\n\nPrivate rules",
+                        },
+                        {
+                            "type": "input_text",
+                            "text": "<environment_context>private context</environment_context>",
+                        },
+                    ],
+                },
+            },
+            {
+                "type": "response_item",
+                "payload": {
+                    "type": "message",
+                    "role": "user",
+                    "content": [{"type": "input_text", "text": "Question one"}],
+                },
+            },
+            {
+                "type": "response_item",
+                "payload": {
+                    "type": "message",
+                    "role": "assistant",
+                    "content": [{"type": "output_text", "text": "Answer one"}],
+                },
+            },
+            {
+                "type": "response_item",
+                "payload": {
+                    "type": "message",
+                    "role": "user",
+                    "content": [{"type": "input_text", "text": "Question two"}],
+                },
+            },
+        ]
+
+        rendered = capture.render_messages(records)
+
+        self.assertEqual(2, capture._user_turns(records))
+        self.assertIn("Question one", rendered)
+        self.assertIn("Answer one", rendered)
+        self.assertIn("Question two", rendered)
+        self.assertNotIn("AGENTS.md", rendered)
+        self.assertNotIn("environment_context", rendered)
 
     def test_older_schema_uses_assistant_response_items(self):
         records = [

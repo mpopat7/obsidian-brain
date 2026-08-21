@@ -117,16 +117,7 @@ def _load_records(path):
     return records
 
 
-def _visible_user_message(record):
-    if record.get("type") == "event_msg":
-        payload = record.get("payload", {})
-        if payload.get("type") == "user_message":
-            message = str(payload.get("message", "")).strip()
-            return message or None
-    return None
-
-
-def _response_text(payload):
+def _message_text(payload, content_types):
     content = payload.get("content", [])
     if not isinstance(content, list):
         return ""
@@ -134,9 +125,49 @@ def _response_text(payload):
         str(block.get("text", "")).strip()
         for block in content
         if isinstance(block, dict)
-        and block.get("type") in ("output_text", "text")
+        and block.get("type") in content_types
         and str(block.get("text", "")).strip()
     )
+
+
+def _is_injected_user_context(text):
+    stripped = str(text).lstrip()
+    return stripped.startswith("# AGENTS.md instructions") or stripped.startswith(
+        "<environment_context>"
+    )
+
+
+def _response_user_message(payload):
+    if payload.get("type") != "message" or payload.get("role") != "user":
+        return None
+    content = payload.get("content", [])
+    if not isinstance(content, list):
+        return None
+    visible = [
+        str(block.get("text", "")).strip()
+        for block in content
+        if isinstance(block, dict)
+        and block.get("type") in ("input_text", "text")
+        and str(block.get("text", "")).strip()
+        and not _is_injected_user_context(block.get("text", ""))
+    ]
+    message = "\n\n".join(visible).strip()
+    return message or None
+
+
+def _visible_user_message(record, allow_response_items=True):
+    if record.get("type") == "event_msg":
+        payload = record.get("payload", {})
+        if payload.get("type") == "user_message":
+            message = str(payload.get("message", "")).strip()
+            return message or None
+    if allow_response_items and record.get("type") == "response_item":
+        return _response_user_message(record.get("payload", {}))
+    return None
+
+
+def _response_text(payload):
+    return _message_text(payload, ("output_text", "text"))
 
 
 def _record_after(record, after):
@@ -147,10 +178,16 @@ def _record_after(record, after):
 
 
 def _user_turns(records, after=None):
+    relevant = [record for record in records if _record_after(record, after)]
+    has_user_events = any(
+        record.get("type") == "event_msg"
+        and record.get("payload", {}).get("type") == "user_message"
+        for record in relevant
+    )
     return sum(
         1
-        for record in records
-        if _record_after(record, after) and _visible_user_message(record)
+        for record in relevant
+        if _visible_user_message(record, allow_response_items=not has_user_events)
     )
 
 
@@ -199,8 +236,15 @@ def _session_title(records, path, titles):
     session_id = _session_id(records, path)
     if session_id in titles:
         return titles[session_id]
+    has_user_events = any(
+        record.get("type") == "event_msg"
+        and record.get("payload", {}).get("type") == "user_message"
+        for record in records
+    )
     for record in records:
-        message = _visible_user_message(record)
+        message = _visible_user_message(
+            record, allow_response_items=not has_user_events
+        )
         if not message or is_scaffolding(message):
             continue
         title = clean_title(message)
@@ -227,10 +271,16 @@ def _session_project(records):
 
 
 def render_messages(records, after=None):
+    relevant = [record for record in records if _record_after(record, after)]
     has_agent_events = any(
         record.get("type") == "event_msg"
         and record.get("payload", {}).get("type") == "agent_message"
-        for record in records
+        for record in relevant
+    )
+    has_user_events = any(
+        record.get("type") == "event_msg"
+        and record.get("payload", {}).get("type") == "user_message"
+        for record in relevant
     )
     lines = []
     current_speaker = None
@@ -247,11 +297,11 @@ def render_messages(records, after=None):
             current_speaker = speaker
         lines.extend([message, ""])
 
-    for record in records:
-        if not _record_after(record, after):
-            continue
+    for record in relevant:
         payload = record.get("payload", {})
-        user_message = _visible_user_message(record)
+        user_message = _visible_user_message(
+            record, allow_response_items=not has_user_events
+        )
         if user_message:
             append_message("You", user_message)
         elif (
