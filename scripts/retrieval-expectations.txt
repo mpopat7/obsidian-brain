@@ -40,3 +40,5 @@ open-source contribution -> github-presence-and-open-source-contribution
 ics calendar           -> ics-calendar-troubleshooting
 continuation edges     -> 2026-08-20-repair-continuation-edges
 graph islands          -> obsidian-brain
+career.edyou           -> jpmc-career-edyou
+researchability test   -> builder-bio-patterns
