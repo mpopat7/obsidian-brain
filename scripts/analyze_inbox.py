@@ -9,6 +9,11 @@ import sys
 import urllib.request
 from pathlib import Path
 
+try:
+    from .repair_continuations import rewrite_continuation_text
+except ImportError:
+    from repair_continuations import rewrite_continuation_text
+
 VAULT = Path(os.environ.get("VAULT", Path.home() / "obsidian-brain"))
 INBOX = VAULT / "00-inbox"
 CONVERSATIONS = VAULT / "01-conversations"
@@ -82,6 +87,23 @@ def _unique(folder, name):
         dest = folder / f"{dest.stem}-{n}{dest.suffix}"
         n += 1
     return dest
+
+
+def _rewrite_inbound_continuations(old_stem, new_stem):
+    """Repoint child captures when triage renames their parent capture."""
+    if old_stem == new_stem:
+        return []
+    changed = []
+    paths = list(INBOX.glob("*.md")) + list(CONVERSATIONS.rglob("*.md"))
+    for child in paths:
+        text = child.read_text(encoding="utf-8", errors="replace")
+        rewritten, pointer_count = rewrite_continuation_text(
+            text, new_stem, old_target=old_stem)
+        if not pointer_count:
+            continue
+        child.write_text(rewritten, encoding="utf-8")
+        changed.append((child, pointer_count))
+    return changed
 
 
 def parse_note(path):
@@ -162,6 +184,7 @@ def analyze_inbox():
         (CONVERSATIONS / dest_sub).mkdir(parents=True, exist_ok=True)
         dest = _unique(CONVERSATIONS / dest_sub, name)
         shutil.move(str(path), str(dest))
+        _rewrite_inbound_continuations(path.stem, dest.stem)
         results[path.name] = f"ANALYZED -> {dest_sub}/{dest.name}"
     return results
 

@@ -9,11 +9,9 @@ Two checks, each guarding a failure that actually happened:
   links     — no [[link]] in a curated note may point at a note that doesn't
               exist. Conversation captures are skipped here: they quote [[link]]
               as prose and would drown the signal in false positives.
-  ghosts    — no capture may contain a LIVE wikilink at all. Quoted prose is
-              exactly the problem: written raw it became an unresolved node and
-              the capture showed up in the graph as a small island cluster. The
-              converters backtick-wrap transcript links, so any live one here
-              means a capture path bypassed that.
+  ghosts    — no capture may contain an unresolved LIVE wikilink. Quoted prose
+              is backtick-wrapped by the converters; the one permitted live
+              continuation link must resolve to its parent capture.
 
 Exits non-zero if anything fails, so it can gate a triage run.
 
@@ -39,7 +37,8 @@ CAPTURES = ("01-conversations",)
 LINK_RE = re.compile(r"\[\[([^\]]+)\]\]")
 # What Obsidian actually links: closed on one line, no bracket inside the target.
 STRICT_LINK_RE = re.compile(r"\[\[([^\[\]\n]+)\]\]")
-# The pipeline writes exactly one live link into a capture, by design.
+# The pipeline writes exactly one live link into a capture, by design. Its shape
+# is allowed, but its target must still pass the resolution check below.
 ALLOWED_CAPTURE_LINK = re.compile(r"^>\s*Continuation of \[\[")
 
 
@@ -126,18 +125,20 @@ def check_ghosts():
                 if line.lstrip().startswith("```"):
                     fenced = not fenced
                     continue
-                if fenced or "[[" not in line or ALLOWED_CAPTURE_LINK.match(line):
+                if fenced or "[[" not in line:
                     continue
                 # strip_code needs whole-file context for fences, so the fence
                 # state is tracked here and it is used only for inline spans.
                 for m in STRICT_LINK_RE.finditer(strip_code(line)):
                     target = m.group(1).split("|")[0].split("#")[0].strip()
                     if target and target not in stems:
-                        ghosts.append((rel, lineno, target))
+                        kind = ("continuation" if ALLOWED_CAPTURE_LINK.match(line)
+                                else "ghost")
+                        ghosts.append((rel, lineno, target, kind))
 
     print("ghosts: {} live ghost [[link]]s in conversation captures".format(len(ghosts)))
-    for rel, lineno, target in ghosts[:20]:
-        print("  FAIL  {}:{} -> [[{}]]".format(rel, lineno, target))
+    for rel, lineno, target, kind in ghosts[:20]:
+        print("  FAIL  {}:{} {} -> [[{}]]".format(rel, lineno, kind, target))
     if len(ghosts) > 20:
         print("  ... and {} more".format(len(ghosts) - 20))
     return not ghosts
