@@ -11,8 +11,10 @@ from pathlib import Path
 
 try:
     from .repair_continuations import rewrite_continuation_text
+    from .hub_router import Router
 except ImportError:
     from repair_continuations import rewrite_continuation_text
+    from hub_router import Router
 
 VAULT = Path(os.environ.get("VAULT", Path.home() / "obsidian-brain"))
 INBOX = VAULT / "00-inbox"
@@ -158,8 +160,53 @@ def rebuild(fm, result, body):
     return "\n".join(lines) + "\n" + body
 
 
+#: Marks a link this script wrote, so triage can tell an auto-route from a
+#: curated link and replace it without guessing. Same idea as relate_notes'
+#: score comments.
+ROUTED_MARKER = "<!-- routed: {tier} {confidence:.2f} -->"
+
+
+def hub_link_section(hub, tier, confidence):
+    return "\n## Links\n- [[{}]]  {}\n".format(
+        hub, ROUTED_MARKER.format(tier=tier, confidence=confidence))
+
+
+def add_hub_link(text, router):
+    """Append a `## Links` section routing this note to a hub.
+
+    This is what stops a filed capture from being born a satellite: filing and
+    linking become one step instead of two, only one of which was automatic.
+    Returns (text, hub, tier) — or (text, None, None) if the note already has a
+    real link, since a curated link always outranks a routed one.
+    """
+    body = re.sub(r"`[^`\n]*`", " ", re.sub(r"```.*?```", " ", text, flags=re.S))
+    existing = {l.split("|")[0].split("#")[0].strip()
+                for l in re.findall(r"\[\[([^\[\]\n]+)\]\]", body)}
+    if existing & set(router.hubs):
+        return text, None, None
+
+    fm_match = re.match(r"^---\n(.*?)\n---", text, re.S)
+    front = fm_match.group(1) if fm_match else ""
+    tag_match = re.search(r"tags:\s*\[(.*?)\]", front, re.S)
+    tags = [t.strip() for t in tag_match.group(1).split(",") if t.strip()] if tag_match else []
+
+    def field(name):
+        hit = re.search(r"^%s:\s*(.*)$" % name, front, re.M)
+        return hit.group(1).strip().strip('"').strip() if hit else ""
+
+    hub, confidence, tier = router.route(tags, field("title"), field("summary"),
+                                         field("project"))
+    return text.rstrip("\n") + "\n" + hub_link_section(hub, tier, confidence), hub, tier
+
+
 def analyze_inbox():
     results = {}
+    try:
+        router = Router(VAULT)
+    except Exception as e:
+        print(f"hub router unavailable ({e}) — notes will be filed unlinked.",
+              file=sys.stderr)
+        router = None
     for path in sorted(INBOX.glob("*.md")):
         if path.name.startswith("_"):
             continue
@@ -179,13 +226,20 @@ def analyze_inbox():
         if not result:
             results[path.name] = "FAILED (no JSON)"
             continue
-        path.write_text(rebuild(fm, result, body))
+        filed_text = rebuild(fm, result, body)
+        routed_hub = routed_tier = None
+        if router is not None:
+            filed_text, routed_hub, routed_tier = add_hub_link(filed_text, router)
+        path.write_text(filed_text)
         name = _filed_name(path.stem, _summary_slug(result["title"])) or path.name
         (CONVERSATIONS / dest_sub).mkdir(parents=True, exist_ok=True)
         dest = _unique(CONVERSATIONS / dest_sub, name)
         shutil.move(str(path), str(dest))
         _rewrite_inbound_continuations(path.stem, dest.stem)
-        results[path.name] = f"ANALYZED -> {dest_sub}/{dest.name}"
+        outcome = f"ANALYZED -> {dest_sub}/{dest.name}"
+        if routed_hub:
+            outcome += f"  [[{routed_hub}]] ({routed_tier})"
+        results[path.name] = outcome
     return results
 
 

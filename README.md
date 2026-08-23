@@ -48,7 +48,8 @@ Inspect or remove the agent with `--status` or `--uninstall`; logs live at
 ### Analysis (`00-inbox/` → `01-conversations/<source>/`)
 | Script | What it does |
 |---|---|
-| `scripts/analyze_inbox.py` | For each inbox note: asks a local Ollama model for a title, summary, and tags; writes them into the frontmatter; moves the note to `01-conversations/<source>/`. |
+| `scripts/analyze_inbox.py` | For each inbox note: asks a local Ollama model for a title, summary, and tags; writes them into the frontmatter; routes the note to a hub via `hub_router.py`; moves it to `01-conversations/<source>/`. Filing and linking are one step, so no note is filed as a satellite. |
+| `scripts/hub_router.py` | Picks the best-fit hub for a note, using tables learned from the vault: tag/hub history, `project:` frontmatter, hub-body vocabulary for cold starts, and `[[unrouted-captures]]` as an honest floor. Read-only. |
 
 ```bash
 python scripts/analyze_inbox.py
@@ -61,13 +62,32 @@ python scripts/analyze_inbox.py
 ### Checks and repair
 | Script | What it does |
 |---|---|
-| `scripts/check_vault.py` | Three gates: retrieval expectations still rank, curated notes have no dangling links, and no capture holds a live ghost link. Exits non-zero so it can gate a triage run. |
+| `scripts/check_vault.py` | Four gates: retrieval expectations still rank, curated notes have no dangling links, no capture holds a live ghost link, and nothing sits off the main graph component. Exits non-zero so it can gate a triage run. |
+| `scripts/satellites.py` | Reports **satellite nodes** — notes with no path to the main component. Backs the `satellites` gate. Read-only. |
+| `scripts/repair_satellites.py` | Routes existing satellites onto the graph with the same router used at filing time. `--dry-run` by default; idempotent, and never overwrites a curated link. |
 | `scripts/repair_ghost_links.py` | One-time cleanup for captures written before the converters sanitized their output. Backtick-wraps unresolved links in `01-conversations/**` only; curated notes are never touched. `--dry-run` first. |
 
 ```bash
 python3 scripts/check_vault.py
 python3 scripts/repair_ghost_links.py --dry-run
+python3 scripts/satellites.py                  # report off-graph notes
+python3 scripts/repair_satellites.py --apply   # pull them back onto the graph
+python3 scripts/hub_router.py --table          # inspect what the router learned
 ```
+
+### Satellite nodes
+A **satellite** is a note, or a small group linked only to each other, with no path
+to the main graph component — little clusters orbiting the brain at a distance. They
+are not the same as orphans: a capture and its continuation child, pointing at each
+other and nothing else, is fully linked internally and still unreachable, which is why
+counting orphans missed them.
+
+They accumulated because the vault's link-on-triage rule was enforced only by a human
+running `/brain-triage`, while capture ran hourly — and no check measured graph
+position, so the gate passed either way. The same cleanup happened three times
+(June's 1,512 unlinked notes, August's 770 ghost links, August's 8 continuation edges)
+and regrew each time. `analyze_inbox.py` now links at filing time and `check_vault.py`
+fails on any satellite. See `06-decisions/2026-08-23-satellite-nodes.md`.
 
 Why this exists: a transcript quotes `[[ -n "$x" ]]`, `[[:space:]]`, CSV rows and
 `~/dev/memory` note names. Obsidian reads every one as a wikilink and draws an

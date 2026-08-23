@@ -18,14 +18,36 @@ Ingestion scripts that capture AI conversations from multiple sources into ~/obs
 ## Vault Inbox
 Ingestion scripts write to ~/obsidian-brain/00-inbox/
 Triage is automated by analyze_inbox.py: asks local Ollama for title/summary/tags,
-writes them to frontmatter, moves the note to 01-conversations/<source>/.
+writes them to frontmatter, routes the note to a hub, moves it to 01-conversations/<source>/.
 Persistent capture watermarks live under 99-archive/system/capture-state/, not in the inbox.
 Run it when Obsidian Sync is idle (moving files mid-sync can create duplicates).
 
+## Hub Links (no note is born a satellite)
+analyze_inbox.py routes every note to one hub MOC as it files it, via hub_router.py, and
+appends a `## Links` section carrying a `<!-- routed: tier confidence -->` marker so triage
+can tell an auto-route from a curated link. Filing and linking used to be two steps with
+only one of them automatic; that gap is what produced satellite nodes (see below).
+
+Routing is deterministic and learned from the vault, in four tiers — `history` (tag/hub
+co-occurrence), `project` (frontmatter naming a real 03-projects hub), `mention` (hub-body
+vocabulary, for a brand-new topic), and `floor` ([[unrouted-captures]]). It commits on ~85%
+of notes and agrees with the existing human hub choice 83% of the time; the rest go to the
+floor hub on purpose, because a guessed hub is worse than an honest triage queue.
+
+## Satellite nodes
+A **satellite** is a note, or a small group linked only to each other, with no path to the
+main graph component. Distinct from an orphan: a capture and its continuation child pointing
+at each other and nothing else is internally linked and still unreachable.
+
+`scripts/satellites.py` reports them; `check_vault.py`'s fourth gate fails on any that are
+not in an exempt sector (99-archive, 04-templates, docs, attachment, `_`-prefixed, and
+00-inbox which is transient staging). `scripts/repair_satellites.py` clears an existing
+population. Background, and why three earlier cleanups regrew:
+`06-decisions/2026-08-23-satellite-nodes.md`.
+
 ## Peer Links (graph, not star)
-analyze_inbox.py only links each note UP to one hub MOC (e.g. [[nutrition-and-training]]),
-which leaves the graph a hub-and-spoke star. relate_notes.py adds the missing peer
-(note<->note) edges: it embeds each note's title+summary+tags via an Ollama embedding
+The hub link alone leaves the graph a hub-and-spoke star. relate_notes.py adds the
+missing peer (note<->note) edges: it embeds each note's title+summary+tags via an Ollama embedding
 model (mxbai-embed-large on the NUC), finds each note's top-K nearest neighbors by
 cosine similarity, and writes a `## Related` section. It is idempotent (regenerates the
 `## Related` block each run) and caches embeddings at ~/.cache/obsidian-brain-embeddings.json.
@@ -58,7 +80,10 @@ python3 scripts/analyze_inbox.py                       # title/summarize/tag + f
 python3 scripts/relate_notes.py                        # DRY RUN: preview ## Related peer links
 python3 scripts/relate_notes.py --apply                # write ## Related into every conversation note
 python3 scripts/relate_notes.py --source chatgpt --k 5 --floor 0.62 --apply   # tune scope/precision
-python3 scripts/check_vault.py                         # gate: retrieval + curated links + capture ghosts
+python3 scripts/check_vault.py                         # gate: retrieval + curated links + ghosts + satellites
+python3 scripts/satellites.py                          # report notes off the main graph component
+python3 scripts/repair_satellites.py --apply           # route existing satellites onto the graph
+python3 scripts/hub_router.py --table                  # inspect the learned tag -> hub table
 python3 scripts/repair_ghost_links.py --dry-run        # one-time: neutralize ghost links already in the vault
 ```
 

@@ -96,8 +96,11 @@ class ContinuationRenameTest(unittest.TestCase):
             self.assertIn('continuation_of: "{}"'.format(new_stem), child.read_text())
             self.assertIn("> Continuation of [[{}]].".format(new_stem), child.read_text())
             self.assertEqual(child_text, decision.read_text())
-            self.assertEqual(
-                "ANALYZED -> claude-code/{}.md".format(new_stem),
+            # Filing now also routes the note to a hub, so the outcome line
+            # carries the chosen hub and tier after the destination path.
+            self.assertTrue(
+                result[parent.name].startswith(
+                    "ANALYZED -> claude-code/{}.md".format(new_stem)),
                 result[parent.name],
             )
 

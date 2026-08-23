@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Check that the vault still answers correctly and that curated notes link cleanly.
 
-Two checks, each guarding a failure that actually happened:
+Four checks, each guarding a failure that actually happened:
 
   retrieval — every `query -> note` pair in retrieval-expectations.txt must put
               that note in the top N. Catches a scoring change that demotes a
@@ -12,6 +12,10 @@ Two checks, each guarding a failure that actually happened:
   ghosts    — no capture may contain an unresolved LIVE wikilink. Quoted prose
               is backtick-wrapped by the converters; the one permitted live
               continuation link must resolve to its parent capture.
+  satellites— no note outside the exempt sectors may sit off the main graph
+              component. Catches the failure the other three miss entirely: a
+              note that is internally clean but reaches nothing and is reached
+              by nothing. Three hand cleanups regrew because nothing measured it.
 
 Exits non-zero if anything fails, so it can gate a triage run.
 
@@ -25,7 +29,9 @@ import re
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import brain_mcp  # noqa: E402
+import satellites  # noqa: E402
 
 VAULT = brain_mcp.VAULT
 EXPECTATIONS = os.path.join(os.path.dirname(os.path.abspath(__file__)),
@@ -144,6 +150,20 @@ def check_ghosts():
     return not ghosts
 
 
+def check_satellites():
+    """No note may sit off the main graph component unless its sector is exempt."""
+    notes, clusters, offenders = satellites.find(vault=VAULT)
+
+    print("satellites: {} notes off the main graph component".format(len(offenders)))
+    for stem in offenders[:20]:
+        cluster = next(c for c in clusters if stem in c)
+        shape = "pair/cluster of {}".format(len(cluster)) if len(cluster) > 1 else "lone"
+        print("  FAIL  {} ({})".format(notes[stem]["rel"], shape))
+    if len(offenders) > 20:
+        print("  ... and {} more".format(len(offenders) - 20))
+    return not offenders
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--top", type=int, default=3,
@@ -152,6 +172,7 @@ def main():
     ok = check_retrieval(args.top)
     ok = check_links() and ok
     ok = check_ghosts() and ok
+    ok = check_satellites() and ok
     print("\n{}".format("PASS" if ok else "FAIL"))
     sys.exit(0 if ok else 1)
 
