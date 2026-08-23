@@ -42,3 +42,9 @@ continuation edges     -> 2026-08-20-repair-continuation-edges
 graph islands          -> obsidian-brain
 career.edyou           -> jpmc-career-edyou
 researchability test   -> builder-bio-patterns
+acv analysis           -> hiview-acv-analysis
+acv                    -> hiview-acv-analysis
+partner hub            -> hiview-acv-analysis
+context7               -> 2026-08-22-context7-only-web-mcp
+agent reach            -> 2026-08-22-context7-only-web-mcp
+ssh mercury            -> machines
