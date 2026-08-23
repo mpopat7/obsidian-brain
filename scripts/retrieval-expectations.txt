@@ -48,3 +48,13 @@ partner hub            -> hiview-acv-analysis
 context7               -> 2026-08-22-context7-only-web-mcp
 agent reach            -> 2026-08-22-context7-only-web-mcp
 ssh mercury            -> machines
+satellite nodes        -> 2026-08-23-satellite-nodes
+satellite              -> 2026-08-23-satellite-nodes
+unrouted captures      -> unrouted-captures
+hub router             -> 2026-08-23-satellite-nodes
+cold outreach          -> cold-outreach
+coffee chat            -> cold-outreach
+draft only             -> gmail-connector-workflow
+gmail connector        -> gmail-connector-workflow
+undergraduate research -> iu-undergraduate-research
+vip program            -> iu-undergraduate-research
