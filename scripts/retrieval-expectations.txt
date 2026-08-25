@@ -62,3 +62,7 @@ codex sandbox          -> claude-codex-dual-workflow
 work authorization -> job-search
 spare page space  -> resume
 shadowed by a builtin -> claude-skill-design
+citadel stock pitch -> citadel-stock-pitch
+point-in-time -> citadel-stock-pitch
+Redirect, never Forward -> gmail-connector-workflow
+slac suli -> student-programs
