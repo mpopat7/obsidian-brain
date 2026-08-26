@@ -66,3 +66,7 @@ citadel stock pitch -> citadel-stock-pitch
 point-in-time -> citadel-stock-pitch
 Redirect, never Forward -> gmail-connector-workflow
 slac suli -> student-programs
+rice research outreach -> external-research-outreach
+schools other than IU -> external-research-outreach
+terminal panels -> github-presence-and-open-source-contribution
+cancelled after the cover letter -> job-search
