@@ -74,3 +74,8 @@ down-sampling is real -> algoverse-research
 solve_time_s -> algoverse-research
 class standing is an eligibility gate -> job-search
 coursework line strands orphans -> resume
+row-insert trap in reverse -> google-sheets-mcp-setup
+timing_schema -> algoverse-research
+disclosable selection bias -> algoverse-research
+became verified skills mid-tailoring -> resume
+reads "1 behind" every morning -> dev-config-repo-sync
