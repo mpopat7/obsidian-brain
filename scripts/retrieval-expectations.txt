@@ -70,3 +70,7 @@ rice research outreach -> external-research-outreach
 schools other than IU -> external-research-outreach
 terminal panels -> github-presence-and-open-source-contribution
 cancelled after the cover letter -> job-search
+down-sampling is real -> algoverse-research
+solve_time_s -> algoverse-research
+class standing is an eligibility gate -> job-search
+coursework line strands orphans -> resume
