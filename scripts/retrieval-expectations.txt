@@ -79,3 +79,13 @@ timing_schema -> algoverse-research
 disclosable selection bias -> algoverse-research
 became verified skills mid-tailoring -> resume
 reads "1 behind" every morning -> dev-config-repo-sync
+never read an angle out of an ID -> portpy-dataset-defects
+structures overrun the influence matrix -> portpy-dataset-defects
+no caffeinate flag survives closing the lid -> long-running-local-jobs
+continue to the next predeclared item -> long-running-local-jobs
+the protocol is frozen -> experiment-protocol-freezing
+counts, not just anything that changes -> experiment-protocol-freezing
+one copy per attendee -> meeting-transcript-workflow
+never take a person's name from a transcript -> meeting-transcript-workflow
+"done" is a word the manager will define -> stakeholder-reporting
+are not news to a stakeholder -> stakeholder-reporting
