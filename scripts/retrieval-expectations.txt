@@ -89,3 +89,9 @@ one copy per attendee -> meeting-transcript-workflow
 never take a person's name from a transcript -> meeting-transcript-workflow
 "done" is a word the manager will define -> stakeholder-reporting
 are not news to a stakeholder -> stakeholder-reporting
+the missing piece is external validation -> career-direction
+evidence the work escaped the dev environment -> career-direction
+proudest-work URL is explicitly optional -> student-programs
+read the eligibility lines before the vocabulary -> job-search
+PERM / immigration-compliance posting -> job-search
+QA renders, intermediate images, temp directories -> onedrive-professional-file-structure
