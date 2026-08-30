@@ -95,3 +95,7 @@ proudest-work URL is explicitly optional -> student-programs
 read the eligibility lines before the vocabulary -> job-search
 PERM / immigration-compliance posting -> job-search
 QA renders, intermediate images, temp directories -> onedrive-professional-file-structure
+capability as data -> agent-facing-application-intake
+MalformedSecurityHeader -> agent-facing-application-intake
+a sweep is bounded by its query -> job-search
+a folder moves only after its tracker row is written -> resume
