@@ -99,3 +99,6 @@ capability as data -> agent-facing-application-intake
 MalformedSecurityHeader -> agent-facing-application-intake
 a sweep is bounded by its query -> job-search
 a folder moves only after its tracker row is written -> resume
+Gemini surface is opened when a task -> 2026-08-30-gemini-browser-only
+burden of proof sits with the advocate -> 2026-08-31-council-advocate-burden-of-proof
+58 outside IU and 11 at IU -> external-research-outreach
