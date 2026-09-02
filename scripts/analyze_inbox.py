@@ -30,6 +30,7 @@ SOURCE_DEST = {
     "codex": "codex",
     "ollama": "local",
     "chatgpt": "chatgpt",
+    "antigravity": "antigravity",
 }
 
 PROMPT = """You are organizing an AI conversation note. Read the conversation and respond with ONLY a JSON object, no other text:
@@ -51,7 +52,7 @@ def _summary_slug(title, max_words=4):
 
 
 # Longest first: "-claude-code" must win over "-claude-ai" on a claude-code stem.
-_SOURCE_TOKENS = ("claude-code", "claude-api", "claude-ai", "perplexity",
+_SOURCE_TOKENS = ("claude-code", "claude-api", "claude-ai", "antigravity", "perplexity",
                   "chatgpt", "codex", "ollama")
 _CONTINUED_RE = re.compile(r"(-continued-\d+)$")
 

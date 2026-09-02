@@ -33,6 +33,12 @@ class CombinedCaptureTests(unittest.TestCase):
         self.assertEqual([expected], second.calls)
         self.assertEqual({"First", "Second"}, set(results))
 
+    def test_registered_captures_include_all_three_sources(self):
+        labels = [label for label, _ in capture_chats.CAPTURES]
+        self.assertIn("Claude Code", labels)
+        self.assertIn("Codex", labels)
+        self.assertIn("Antigravity", labels)
+
 
 if __name__ == "__main__":
     unittest.main()

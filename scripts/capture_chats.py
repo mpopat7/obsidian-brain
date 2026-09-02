@@ -4,8 +4,9 @@
 import argparse
 
 try:
-    from . import convert_claude_code, convert_codex
+    from . import convert_antigravity, convert_claude_code, convert_codex
 except ImportError:  # Direct script execution puts scripts/ itself on sys.path.
+    import convert_antigravity
     import convert_claude_code
     import convert_codex
 
@@ -13,6 +14,7 @@ except ImportError:  # Direct script execution puts scripts/ itself on sys.path.
 CAPTURES = (
     ("Claude Code", convert_claude_code),
     ("Codex", convert_codex),
+    ("Antigravity", convert_antigravity),
 )
 
 

@@ -38,6 +38,13 @@ class FiledNameTest(unittest.TestCase):
             "2026-08-11-codex-algoverse-project-progress.md",
         )
 
+    def test_antigravity_source_token(self):
+        self.assertEqual(
+            _filed_name("2026-09-02-antigravity-lets-implement-the-business-minor",
+                        "business-minor-implementation"),
+            "2026-09-02-antigravity-business-minor-implementation.md",
+        )
+
     def test_no_slug_means_no_rename(self):
         self.assertIsNone(_filed_name("2026-08-12-claude-code-anything", ""))
 

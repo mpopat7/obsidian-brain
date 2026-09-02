@@ -13,6 +13,7 @@ Ingestion scripts that capture AI conversations from multiple sources into ~/obs
 - Claude.ai → QuickAdd hotkey in Obsidian (manual paste)
 - Claude Code → hourly local `convert_claude_code.py` sweep, with a fallback sweep before `/brain-triage` (settled sessions and linked delta continuations)
 - Codex → hourly local `convert_codex.py` sweep through the same LaunchAgent (visible messages only; settled sessions and linked delta continuations)
+- Antigravity → hourly local `convert_antigravity.py` sweep through the same LaunchAgent (visible messages and compact tool calls; settled sessions and linked delta continuations)
 - Claude API → planned, not yet built (was to be log_claude.py)
 
 ## Vault Inbox
@@ -74,8 +75,9 @@ python scripts/log_ollama.py                           # Ollama client helper (a
 python scripts/convert_chatgpt.py conversations.json   # convert ChatGPT export
 python3 scripts/convert_claude_code.py                 # capture settled Claude Code sessions
 python3 scripts/convert_codex.py                       # capture settled Codex chats
-python3 scripts/capture_chats.py                       # run both capture sweeps
-python3 scripts/install_claude_code_capture.py         # install hourly macOS capture for both (once per Mac)
+python3 scripts/convert_antigravity.py                 # capture settled Antigravity sessions
+python3 scripts/capture_chats.py                       # run all three capture sweeps
+python3 scripts/install_claude_code_capture.py         # install hourly macOS capture for all three (once per Mac)
 python3 scripts/analyze_inbox.py                       # title/summarize/tag + file the inbox
 python3 scripts/relate_notes.py                        # DRY RUN: preview ## Related peer links
 python3 scripts/relate_notes.py --apply                # write ## Related into every conversation note
@@ -110,7 +112,7 @@ Every ingested note uses:
 ```yaml
 ---
 date: YYYY-MM-DD
-source: claude-api        # claude-api | claude-ai | claude-code | codex | chatgpt | ollama
+source: claude-api        # claude-api | claude-ai | claude-code | codex | chatgpt | ollama | antigravity
 model: claude-sonnet-4-6
 tags: []
 summary: ""
