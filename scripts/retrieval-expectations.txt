@@ -102,3 +102,13 @@ a folder moves only after its tracker row is written -> resume
 Gemini surface is opened when a task -> 2026-08-30-gemini-browser-only
 burden of proof sits with the advocate -> 2026-08-31-council-advocate-burden-of-proof
 58 outside IU and 11 at IU -> external-research-outreach
+The two blocks are unrelated mechanisms -> iu-tooling-access-limits
+not on a capability wall, and its one tracker write was reverted -> 2026-09-01-app-update-is-claude-only
+the watermark is the part that doesn't roll back -> claude-codex-dual-workflow
+seven applications with recruiting mail in Gmail and no row -> job-search
+seeded from the exact Sent/Scheduled state, not from the draft list -> external-research-outreach
+Reach IU mail through Apple Mail, not Microsoft Graph -> 2026-09-01-iu-mail-via-apple-mail
+The Outlook block was solved — by borrowing a trusted client -> iu-tooling-access-limits
+Course AI policies — check before -> coursework-reference
+rtail batch — nine postings in one night -> job-search
+A local `osascript` bridge is a legitimate server shape -> mcp-server-management
