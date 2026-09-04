@@ -112,3 +112,13 @@ The Outlook block was solved — by borrowing a trusted client -> iu-tooling-acc
 Course AI policies — check before -> coursework-reference
 rtail batch — nine postings in one night -> job-search
 A local `osascript` bridge is a legitimate server shape -> mcp-server-management
+Campus resume — a third track that -> resume
+A snippet may close a thread only when the snippet itself names an outcome -> job-search
+Filippo Menczer replied first -> iu-undergraduate-research
+The tab split is a rule, not a layout -> external-research-outreach
+Two accounts, one machine, one memory -> claude-codex-dual-workflow
+index is rent; the notes behind it are free -> dev-config-repo-sync
+verdict → bare fact → reason -> cold-outreach
+Antigravity becomes the third capture source -> obsidian-brain
+Everything remaining is other people's access, not engineering -> company-brain
+no LLM clause -> coursework-reference
