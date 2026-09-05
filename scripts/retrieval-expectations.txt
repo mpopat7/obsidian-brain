@@ -122,3 +122,9 @@ verdict → bare fact → reason -> cold-outreach
 Antigravity becomes the third capture source -> obsidian-brain
 Everything remaining is other people's access, not engineering -> company-brain
 no LLM clause -> coursework-reference
+cover letter -> cover-letter-build
+A second page is not evidence the body is too long -> cover-letter-build
+The scale floor is 0.85 -> cover-letter-build
+YC is a queryable list, not a browsing exercise -> cold-outreach
+Palantir was dropped before any build -> job-search
+skip this deltes -> student-programs
