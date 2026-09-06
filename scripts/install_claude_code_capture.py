@@ -25,12 +25,35 @@ def paths(home=None):
     }
 
 
+def resolve_python_path(python_path=None):
+    if python_path:
+        path_str = str(python_path)
+    else:
+        # Prefer stable unversioned entrypoints over version-pinned cellar paths
+        for candidate in (
+            Path("/opt/homebrew/bin/python3"),
+            Path("/usr/local/bin/python3"),
+            Path("/Library/Frameworks/Python.framework/Versions/Current/bin/python3"),
+        ):
+            if candidate.is_file() and os.access(candidate, os.X_OK):
+                return str(candidate)
+        path_str = str(sys.executable)
+
+    # Avoid resolving into Homebrew Cellar patch-specific versions (e.g. Cellar/python@3.14/3.14.5)
+    # which get deleted on `brew upgrade`.
+    if ("/opt/homebrew/Cellar/" in path_str or "/opt/homebrew/opt/" in path_str) and Path("/opt/homebrew/bin/python3").is_file():
+        return "/opt/homebrew/bin/python3"
+    if ("/usr/local/Cellar/" in path_str or "/usr/local/opt/" in path_str) and Path("/usr/local/bin/python3").is_file():
+        return "/usr/local/bin/python3"
+    return path_str
+
+
 def build_plist(python_path=None, home=None):
     resolved = paths(home)
-    python_path = Path(python_path or sys.executable).resolve()
+    python_bin = resolve_python_path(python_path)
     return {
         "Label": LABEL,
-        "ProgramArguments": [str(python_path), str(resolved["capture"])],
+        "ProgramArguments": [python_bin, str(resolved["capture"])],
         "WorkingDirectory": str(resolved["project"]),
         "RunAtLoad": True,
         "StartInterval": INTERVAL_SECONDS,
@@ -38,8 +61,12 @@ def build_plist(python_path=None, home=None):
         "LowPriorityIO": True,
         "StandardOutPath": str(resolved["log"]),
         "StandardErrorPath": str(resolved["log"]),
-        "EnvironmentVariables": {"PYTHONUNBUFFERED": "1"},
+        "EnvironmentVariables": {
+            "PYTHONUNBUFFERED": "1",
+            "PATH": "/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin",
+        },
     }
+
 
 
 def _domain():

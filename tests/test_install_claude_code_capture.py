@@ -18,7 +18,26 @@ class CaptureLaunchAgentTests(unittest.TestCase):
         self.assertTrue(config["ProgramArguments"][1].endswith("capture_chats.py"))
         self.assertNotIn("analyze_inbox.py", " ".join(config["ProgramArguments"]))
         self.assertTrue(config["StandardOutPath"].endswith("obsidian-brain-claude-code-capture.log"))
+        self.assertIn("PATH", config["EnvironmentVariables"])
+
+    def test_resolve_python_path_avoids_homebrew_cellar(self):
+        cellar_path = "/opt/homebrew/Cellar/python@3.14/3.14.7/bin/python3"
+        resolved = installer.resolve_python_path(cellar_path)
+        if Path("/opt/homebrew/bin/python3").is_file():
+            self.assertEqual("/opt/homebrew/bin/python3", resolved)
+        else:
+            self.assertEqual(cellar_path, resolved)
+
+    def test_build_plist_defaults_to_stable_python(self):
+        with tempfile.TemporaryDirectory() as tempdir:
+            home = Path(tempdir)
+            config = installer.build_plist(home=home)
+
+        # Should never point to an ephemeral Cellar directory
+        self.assertNotIn("/Cellar/", config["ProgramArguments"][0])
+        self.assertTrue(Path(config["ProgramArguments"][0]).is_file())
 
 
 if __name__ == "__main__":
     unittest.main()
+
