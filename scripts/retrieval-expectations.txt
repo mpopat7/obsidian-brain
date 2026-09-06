@@ -128,3 +128,8 @@ The scale floor is 0.85 -> cover-letter-build
 YC is a queryable list, not a browsing exercise -> cold-outreach
 Palantir was dropped before any build -> job-search
 skip this deltes -> student-programs
+The Gabriel blueprint collapsed three tracks into one master -> resume
+a dead scheduler delays capture rather than dropping it -> obsidian-brain
+The override is turn-scoped, not skill-scoped -> claude-skill-design
+The 2026-09-04 McKesson triple, and the last Hybrid build -> job-search
+bitwise XOR in Python, not exponentiation -> coursework-reference
