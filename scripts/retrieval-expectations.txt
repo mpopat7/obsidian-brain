@@ -133,3 +133,12 @@ a dead scheduler delays capture rather than dropping it -> obsidian-brain
 The override is turn-scoped, not skill-scoped -> claude-skill-design
 The 2026-09-04 McKesson triple, and the last Hybrid build -> job-search
 bitwise XOR in Python, not exponentiation -> coursework-reference
+job stager -> job-stager
+pre-filled staging -> job-stager
+a detached handle still reports its old value -> browser-form-automation
+vanilla-HTML fixtures cannot catch any of this -> browser-form-automation
+also please email SunInternJobs@Sunoco.com with your resume attached -> job-search
+Trial builds are not free -> cover-letter-build
+Publishing a repo is a privacy review -> dev-config-repo-sync
+Schema defaults are the hiding place no audit looks at -> dev-config-repo-sync
+The first commit was a privacy audit -> job-stager
