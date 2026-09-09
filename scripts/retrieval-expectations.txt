@@ -11,7 +11,7 @@ portpy            -> algoverse-research
 hiview            -> work-hiview
 machines          -> machines
 career            -> career-direction
-goldman sachs     -> career-direction
+goldman sachs possibilities series -> career-direction
 music production  -> music-production
 logic pro         -> music-production
 808               -> music-production
@@ -142,3 +142,10 @@ Trial builds are not free -> cover-letter-build
 Publishing a repo is a privacy review -> dev-config-repo-sync
 Schema defaults are the hiding place no audit looks at -> dev-config-repo-sync
 The first commit was a privacy audit -> job-stager
+emerging leaders series -> student-programs
+The venue search widened past ML entirely -> algoverse-research
+no genuine cyber evidence -> resume
+tailoring miss can be an inventory gap -> resume
+corrupt local cache record -> iu-tooling-access-limits
+The two-store split, diagnosed then closed -> job-stager
+a published application route overrides a cold email -> cold-outreach
