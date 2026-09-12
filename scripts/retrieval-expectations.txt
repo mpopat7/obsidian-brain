@@ -149,3 +149,9 @@ tailoring miss can be an inventory gap -> resume
 corrupt local cache record -> iu-tooling-access-limits
 The two-store split, diagnosed then closed -> job-stager
 a published application route overrides a cold email -> cold-outreach
+Pick the aggregate once, and say so -> honest-quantitative-reporting
+Present a dominant result as a consequence -> honest-quantitative-reporting
+The convention became a skill -> meeting-transcript-workflow
+A subset denominator survives every internal check -> honest-quantitative-reporting
+client-side widget, and the data is one POST away -> iu-tooling-access-limits
+The master can change underneath a run -> resume
