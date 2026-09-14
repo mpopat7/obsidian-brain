@@ -132,9 +132,11 @@ def _message_text(payload, content_types):
 
 def _is_injected_user_context(text):
     stripped = str(text).lstrip()
-    return stripped.startswith("# AGENTS.md instructions") or stripped.startswith(
-        "<environment_context>"
-    )
+    return stripped.startswith((
+        "# AGENTS.md instructions",
+        "<environment_context>",
+        "<recommended_plugins>",
+    ))
 
 
 def _response_user_message(payload):
@@ -160,7 +162,7 @@ def _visible_user_message(record, allow_response_items=True):
         payload = record.get("payload", {})
         if payload.get("type") == "user_message":
             message = str(payload.get("message", "")).strip()
-            return message or None
+            return message if message and not _is_injected_user_context(message) else None
     if allow_response_items and record.get("type") == "response_item":
         return _response_user_message(record.get("payload", {}))
     return None
@@ -180,8 +182,7 @@ def _record_after(record, after):
 def _user_turns(records, after=None):
     relevant = [record for record in records if _record_after(record, after)]
     has_user_events = any(
-        record.get("type") == "event_msg"
-        and record.get("payload", {}).get("type") == "user_message"
+        _visible_user_message(record, allow_response_items=False)
         for record in relevant
     )
     return sum(
@@ -237,8 +238,7 @@ def _session_title(records, path, titles):
     if session_id in titles:
         return titles[session_id]
     has_user_events = any(
-        record.get("type") == "event_msg"
-        and record.get("payload", {}).get("type") == "user_message"
+        _visible_user_message(record, allow_response_items=False)
         for record in records
     )
     for record in records:
@@ -278,8 +278,7 @@ def render_messages(records, after=None):
         for record in relevant
     )
     has_user_events = any(
-        record.get("type") == "event_msg"
-        and record.get("payload", {}).get("type") == "user_message"
+        _visible_user_message(record, allow_response_items=False)
         for record in relevant
     )
     lines = []

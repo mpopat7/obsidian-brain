@@ -260,6 +260,10 @@ class CodexCaptureTests(unittest.TestCase):
                             "type": "input_text",
                             "text": "<environment_context>private context</environment_context>",
                         },
+                        {
+                            "type": "input_text",
+                            "text": "<recommended_plugins>\nHere is a list of plugins that are available but not installed.\n</recommended_plugins>",
+                        },
                     ],
                 },
             },
@@ -292,14 +296,64 @@ class CodexCaptureTests(unittest.TestCase):
         rendered = capture.render_messages(records)
 
         self.assertEqual(2, capture._user_turns(records))
+        self.assertEqual("Question one", capture._session_title(records, Path("session.jsonl"), {}))
         self.assertIn("Question one", rendered)
         self.assertIn("Answer one", rendered)
         self.assertIn("Question two", rendered)
         self.assertNotIn("AGENTS.md", rendered)
         self.assertNotIn("environment_context", rendered)
+        self.assertNotIn("recommended_plugins", rendered)
+
+    def test_injected_plugin_list_does_not_make_one_task_eligible(self):
+        capture.initialize_watermark(datetime(2026, 8, 10, 12, 0, tzinfo=UTC))
+        path = self.sessions / "rollout-delegated.jsonl"
+        records = [
+            {
+                "timestamp": "2026-08-10T13:00:00Z",
+                "type": "session_meta",
+                "payload": {"session_id": "delegated", "source": "mcp"},
+            },
+            {
+                "timestamp": "2026-08-10T13:00:00Z",
+                "type": "response_item",
+                "payload": {
+                    "type": "message",
+                    "role": "user",
+                    "content": [{
+                        "type": "input_text",
+                        "text": "<recommended_plugins>\nHere is a list of plugins that are available but not installed.\n</recommended_plugins>",
+                    }],
+                },
+            },
+            {
+                "timestamp": "2026-08-10T13:01:00Z",
+                "type": "response_item",
+                "payload": {
+                    "type": "message",
+                    "role": "user",
+                    "content": [{"type": "input_text", "text": "Fix the continuation link"}],
+                },
+            },
+        ]
+        path.write_text("\n".join(json.dumps(record) for record in records) + "\n")
+        old = datetime(2026, 8, 10, 14, 0, tzinfo=UTC).timestamp()
+        os.utime(path, (old, old))
+
+        result = capture.sweep(now=datetime(2026, 8, 10, 20, 0, tzinfo=UTC))
+
+        self.assertEqual(1, capture._user_turns(records))
+        self.assertEqual([], result["eligible"])
+        self.assertEqual([], result["captured"])
 
     def test_older_schema_uses_assistant_response_items(self):
         records = [
+            {
+                "type": "event_msg",
+                "payload": {
+                    "type": "user_message",
+                    "message": "<recommended_plugins>\nHere is a list of plugins that are available but not installed.\n</recommended_plugins>",
+                },
+            },
             {
                 "type": "event_msg",
                 "payload": {"type": "user_message", "message": "Question one"},
@@ -320,9 +374,12 @@ class CodexCaptureTests(unittest.TestCase):
 
         rendered = capture.render_messages(records)
 
+        self.assertEqual(2, capture._user_turns(records))
+        self.assertEqual("Question one", capture._session_title(records, Path("session.jsonl"), {}))
         self.assertIn("Question one", rendered)
         self.assertIn("Legacy answer", rendered)
         self.assertIn("Question two", rendered)
+        self.assertNotIn("recommended_plugins", rendered)
 
 
 if __name__ == "__main__":

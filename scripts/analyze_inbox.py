@@ -131,6 +131,8 @@ def ask_ollama(prompt):
 
 
 def analyze(body):
+    body = re.sub(r"<recommended_plugins>.*?</recommended_plugins>\s*", "", body,
+                  flags=re.DOTALL)
     raw = ask_ollama(PROMPT.format(body=body[:MAX_CHARS]))
     match = re.search(r"\{.*\}", raw, re.DOTALL)
     if not match:

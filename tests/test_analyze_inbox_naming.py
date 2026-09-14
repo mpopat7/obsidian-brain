@@ -54,6 +54,23 @@ class FiledNameTest(unittest.TestCase):
         self.assertLess(len(name), 70)
 
 
+class AnalysisInputTest(unittest.TestCase):
+    def test_injected_plugin_list_is_not_sent_for_analysis(self):
+        body = (
+            "## You\n\n<recommended_plugins>\nAvailable plugins\n"
+            "</recommended_plugins>\n\nGOAL\nFix the continuation link.\n"
+        )
+        with mock.patch.object(analyze_inbox, "ask_ollama", return_value=(
+            '{"title":"Continuation fix","summary":"Fixed links.","tags":["obsidian"]}'
+        )) as ask:
+            analyze_inbox.analyze(body)
+
+        prompt = ask.call_args.args[0]
+        self.assertIn("Fix the continuation link.", prompt)
+        self.assertNotIn("recommended_plugins", prompt)
+        self.assertNotIn("Available plugins", prompt)
+
+
 class ContinuationRenameTest(unittest.TestCase):
     def test_filing_parent_repoints_both_child_pointers_only_in_capture_roots(self):
         with tempfile.TemporaryDirectory() as folder:
