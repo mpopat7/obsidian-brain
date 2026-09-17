@@ -155,3 +155,7 @@ The convention became a skill -> meeting-transcript-workflow
 A subset denominator survives every internal check -> honest-quantitative-reporting
 client-side widget, and the data is one POST away -> iu-tooling-access-limits
 The master can change underneath a run -> resume
+The Firecrawl council -> cold-outreach
+plugin-chat mistitle bug -> obsidian-brain
+NCLH kept as the harder test -> citadel-stock-pitch
+Links in Settings, gated on graduation year -> job-stager
