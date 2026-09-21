@@ -159,3 +159,12 @@ The Firecrawl council -> cold-outreach
 plugin-chat mistitle bug -> obsidian-brain
 NCLH kept as the harder test -> citadel-stock-pitch
 Links in Settings, gated on graduation year -> job-stager
+BigQuery is not the answer -> hiview-acv-analysis
+two standing defects, measured across nine runs -> resume
+confirmed on two independent reads -> coursework-reference
+a reactivation kept and a half-written fan-out -> job-search
+The bug that runs is the one that matters -> intro-programming
+Two harnesses on one homework -> discrete-math
+HireVue gets its own stage pair -> 2026-09-17-hirevue-stage-pair
+A quick pass cannot find what it does not name -> job-search
+A built run is not an application -> job-search
