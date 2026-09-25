@@ -168,3 +168,6 @@ Two harnesses on one homework -> discrete-math
 HireVue gets its own stage pair -> 2026-09-17-hirevue-stage-pair
 A quick pass cannot find what it does not name -> job-search
 A built run is not an application -> job-search
+Batch 3 scheduling vs Claude Code's auto-mode classifier -> cold-outreach
+Live on Render, Workday fixed -> job-stager
+Week III has no clause -> intro-programming
