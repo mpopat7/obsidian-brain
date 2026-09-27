@@ -171,3 +171,5 @@ A built run is not an application -> job-search
 Batch 3 scheduling vs Claude Code's auto-mode classifier -> cold-outreach
 Live on Render, Workday fixed -> job-stager
 Week III has no clause -> intro-programming
+Where risk goes: account placement, not fund choice -> personal-investing
+Batch 5: 153 founders, verified but not drafted -> cold-outreach
