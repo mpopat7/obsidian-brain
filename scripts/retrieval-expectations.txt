@@ -175,3 +175,6 @@ Where risk goes: account placement, not fund choice -> personal-investing
 Batch 5: 153 founders, verified but not drafted -> cold-outreach
 The AI-use rule -> okc-thunder-swe
 count real applications as the demand test -> prntshp
+the public product is deleted -> job-stager
+every role since high school -> resume
+Co-sell registrations carry estimated ACV -> hiview-acv-analysis
