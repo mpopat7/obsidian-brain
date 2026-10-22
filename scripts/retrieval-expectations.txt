@@ -179,3 +179,5 @@ the public product is deleted -> job-stager
 every role since high school -> resume
 Co-sell registrations carry estimated ACV -> hiview-acv-analysis
 Industry referral outreach -> cold-outreach
+PPF analysis -> hiview-ppf-analysis
+pitcher change forecaster -> pitcher-change-forecaster
