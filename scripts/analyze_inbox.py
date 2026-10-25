@@ -122,6 +122,42 @@ def parse_note(path):
     return fm, m.group(2)
 
 
+#: Frontmatter that identifies one capture of one session. A filed note keeps
+#: all three through rebuild(), so a match means the same capture.
+_CAPTURE_KEYS = ("session_id", "capture_revision", "capture_until")
+
+
+def _capture_key(fm):
+    key = tuple(fm.get(k, "").strip('"').strip() for k in _CAPTURE_KEYS)
+    return key if key[0] else None
+
+
+def _filed_index(dest_sub):
+    """Map capture key -> filed note, for one 01-conversations/<source>/ folder."""
+    index = {}
+    for path in (CONVERSATIONS / dest_sub).glob("*.md"):
+        key = _capture_key(parse_note(path)[0])
+        if key:
+            index.setdefault(key, path)
+    return index
+
+
+def _filed_copy(fm, body, index):
+    """Return (path, same) if this inbox capture was already filed.
+
+    Obsidian Sync can resurrect an inbox note after another machine filed it,
+    which used to leave the original stranded beside its filed copy. `same` is
+    True only when the filed copy still holds the inbox body verbatim (filing
+    only appends `## Links`/`## Related`), so deleting the inbox copy loses
+    nothing.
+    """
+    key = _capture_key(fm)
+    filed = index.get(key) if key else None
+    if filed is None:
+        return None, False
+    return filed, parse_note(filed)[1].startswith(body.rstrip("\n"))
+
+
 def ask_ollama(prompt):
     body = json.dumps({"model": MODEL, "prompt": prompt, "stream": False}).encode()
     req = urllib.request.Request(f"{OLLAMA_HOST}/api/generate", data=body,
@@ -210,6 +246,7 @@ def analyze_inbox():
         print(f"hub router unavailable ({e}) — notes will be filed unlinked.",
               file=sys.stderr)
         router = None
+    filed_indexes = {}
     for path in sorted(INBOX.glob("*.md")):
         if path.name.startswith("_"):
             continue
@@ -220,6 +257,17 @@ def analyze_inbox():
         dest_sub = SOURCE_DEST.get(fm.get("source", ""))
         if not dest_sub:
             results[path.name] = "SKIPPED (unknown source)"
+            continue
+        if dest_sub not in filed_indexes:
+            filed_indexes[dest_sub] = _filed_index(dest_sub)
+        filed, same = _filed_copy(fm, body, filed_indexes[dest_sub])
+        if filed is not None:
+            if same:
+                path.unlink()
+                results[path.name] = f"DUPLICATE removed (filed as {dest_sub}/{filed.name})"
+            else:
+                results[path.name] = (f"SKIPPED (already filed as {dest_sub}/{filed.name}, "
+                                      "copies differ)")
             continue
         try:
             result = analyze(body)

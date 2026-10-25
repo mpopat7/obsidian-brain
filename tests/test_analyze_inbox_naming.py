@@ -129,5 +129,54 @@ class ContinuationRenameTest(unittest.TestCase):
             )
 
 
+class ResurrectedCaptureTest(unittest.TestCase):
+    """A capture Sync brings back after it was filed must not be filed twice."""
+
+    FRONT = ("---\ndate: 2026-10-22\nsource: codex\nmodel: test\ntitle: \"{title}\"\n"
+             "summary: \"{summary}\"\ntags: []\nsession_id: \"s-1\"\n"
+             "capture_revision: 1\ncapture_until: 2026-10-22T20:33:04Z\n---\n")
+
+    def run_inbox(self, filed_body):
+        with tempfile.TemporaryDirectory() as folder:
+            vault = Path(folder)
+            inbox = vault / "00-inbox"
+            filed_folder = vault / "01-conversations" / "codex"
+            inbox.mkdir()
+            filed_folder.mkdir(parents=True)
+            stray = inbox / "2026-10-22-codex-reanalyze-ppf.md"
+            stray.write_text(self.FRONT.format(title="Raw", summary="") + "## You\n\nPPF\n")
+            filed = filed_folder / "2026-10-22-codex-ppf-attribution.md"
+            filed.write_text(self.FRONT.format(title="PPF", summary="Done.") + filed_body)
+
+            originals = (analyze_inbox.VAULT, analyze_inbox.INBOX,
+                         analyze_inbox.CONVERSATIONS)
+            analyze_inbox.VAULT = vault
+            analyze_inbox.INBOX = inbox
+            analyze_inbox.CONVERSATIONS = vault / "01-conversations"
+            try:
+                with mock.patch.object(analyze_inbox, "analyze") as analyze:
+                    result = analyze_inbox.analyze_inbox()
+            finally:
+                (analyze_inbox.VAULT, analyze_inbox.INBOX,
+                 analyze_inbox.CONVERSATIONS) = originals
+            return (result[stray.name], stray.exists(), analyze.called,
+                    sorted(p.name for p in filed_folder.iterdir()))
+
+    def test_verbatim_copy_is_removed_without_analysis(self):
+        outcome, stray_left, analyzed, filed = self.run_inbox(
+            "## You\n\nPPF\n\n## Links\n- [[hiview-ppf-analysis]]\n")
+        self.assertTrue(outcome.startswith("DUPLICATE removed"), outcome)
+        self.assertFalse(stray_left)
+        self.assertFalse(analyzed)
+        self.assertEqual(["2026-10-22-codex-ppf-attribution.md"], filed)
+
+    def test_diverged_copy_is_left_for_review(self):
+        outcome, stray_left, analyzed, filed = self.run_inbox("## You\n\nEdited\n")
+        self.assertTrue(outcome.startswith("SKIPPED (already filed"), outcome)
+        self.assertTrue(stray_left)
+        self.assertFalse(analyzed)
+        self.assertEqual(["2026-10-22-codex-ppf-attribution.md"], filed)
+
+
 if __name__ == "__main__":
     unittest.main()
