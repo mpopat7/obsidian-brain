@@ -185,3 +185,6 @@ internship-apply skill -> internship-application-skill
 the points at risk are the justification -> linear-algebra
 sph-r 142 living well -> living-well
 deep24 take-home  -> deep24-take-home
+The decision squeeze -> humana-interview
+Ally Auto Data & Analytics offer -> ally-auto-offer
+Numbers must match the record -> behavioral-interview-prep
