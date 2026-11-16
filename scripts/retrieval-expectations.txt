@@ -188,3 +188,5 @@ deep24 take-home  -> deep24-take-home
 The decision squeeze -> humana-interview
 Ally Auto Data & Analytics offer -> ally-auto-offer
 Numbers must match the record -> behavioral-interview-prep
+Interview integrity -> accenture-interview
+2026-11-15 revival -> cadence
